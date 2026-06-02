@@ -63,8 +63,8 @@ class RoomModel {
         landlordName: json['landlord_name'] as String,
         amenities: List<String>.from(json['amenities'] ?? []),
         billsIncluded: json['bills_included'] as bool? ?? false, 
-        ownerName: 'owner_name', 
-        ownerPhone: 'owner_phone', 
-        preferredGender: 'preferred_gender',
+        ownerName: json['owner_name'] as String? ?? '',
+        ownerPhone: json['owner_phone'] as String? ?? '',
+        preferredGender: json['preferred_gender'] as String? ?? '',
       );
 }
