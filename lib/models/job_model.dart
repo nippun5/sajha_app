@@ -27,6 +27,8 @@ class JobModel {
   final DateTime postedAt;
   final DateTime? closingDate;
   final bool isRemote;
+  final String? employerName;
+  final String? employerPhone;
 
   const JobModel({
     required this.id,
@@ -43,6 +45,8 @@ class JobModel {
     required this.postedAt,
     this.closingDate,
     this.isRemote = false,
+    this.employerName,
+    this.employerPhone,
   });
 
   String get salaryDisplay {
@@ -85,5 +89,7 @@ class JobModel {
             ? DateTime.parse(json['closing_date'] as String)
             : null,
         isRemote: json['is_remote'] as bool? ?? false,
+        employerName: json['employer_name'] as String?,
+        employerPhone: json['employer_phone'] as String?,
       );
 }

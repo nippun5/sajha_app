@@ -150,6 +150,8 @@ static List<JobModel> jobListings = [
     ],
     postedAt: DateTime.now(),
     isRemote: true,
+    employerName: 'John Smith',
+    employerPhone: '+19373999333',
   ),
 
   JobModel(
@@ -171,6 +173,8 @@ static List<JobModel> jobListings = [
     ],
     postedAt: DateTime.now(),
     isRemote: false,
+    employerName: 'John Smith',
+    employerPhone: '+19373999333',
   ),
 
   JobModel(
@@ -192,6 +196,9 @@ static List<JobModel> jobListings = [
     ],
     postedAt: DateTime.now(),
     isRemote: true,
+    employerName: 'John Smith',
+    employerPhone: '+19373999333',
+    
   ),
 ];
 

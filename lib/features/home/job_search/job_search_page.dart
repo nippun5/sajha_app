@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sajha_app/features/home/job_search/job_detail_page.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../models/job_model.dart';
 import '../../../shared/data/dummy_data.dart';
@@ -118,7 +119,14 @@ class _JobSearchPageState extends State<JobSearchPage> {
                 child: JobCard(
                   job: jobs[i],
                   onTap: () {
-                    // TODO: navigate to job detail
+                  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => JobDetailPage(
+        job: jobs[i],
+      ),
+    ),
+  );
                   },
                 ),
               ),
