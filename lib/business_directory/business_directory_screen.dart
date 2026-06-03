@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sajha_app/business_directory/business_detail_page.dart';
 import 'package:sajha_app/shared/data/dummy_data.dart';
 
 
@@ -19,7 +20,18 @@ class BusinessDirectoryScreen extends StatelessWidget {
         itemBuilder: (context, index) {
           final business = businesses[index];
 
-          return Card(
+          return InkWell(
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BusinessDetailPage(
+          business: business,
+        ),
+      ),
+    );
+  },
+         child:  Card(
             margin: const EdgeInsets.only(bottom: 14),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
@@ -73,7 +85,7 @@ class BusinessDirectoryScreen extends StatelessWidget {
                 ),
               ],
             ),
-          );
+          ));
         },
       ),
     );

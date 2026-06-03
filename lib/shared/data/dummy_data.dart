@@ -203,22 +203,70 @@ static List<JobModel> jobListings = [
 ];
 
   static List<BusinessModel> businesses = [
-    BusinessModel(
-      id: '1',
-      name: 'Everest Grocery',
-      imageUrl:
-          'https://images.unsplash.com/photo-1542838132-92c53300491e',
-      description: 'Nepali & Asian grocery store.',
-      address: 'Sydney, Australia',
-    ),
+ BusinessModel(
+  id: '1',
+  name: 'Everest Grocery',
 
-    BusinessModel(
-      id: '2',
-      name: 'Himalayan Cafe',
-      imageUrl:
-          'https://images.unsplash.com/photo-1555396273-367ea4eb4db5',
-      description: 'Authentic Nepali food and momo.',
-      address: 'Melbourne, Australia',
-    ),
+  imageUrl:
+      'https://images.unsplash.com/photo-1542838132-92c53300491e',
+
+  description:
+      'Nepali & Asian grocery store with fresh vegetables, spices and frozen foods.',
+
+  address: '123 Main Street, Sydney NSW',
+
+  phone: '+61 412 345 678',
+
+  website: 'www.everestgrocery.com.au',
+
+  category: 'Grocery Store',
+
+  rating: 4.6,
+
+  reviewCount: 125,
+
+  openingHours: {
+    'Monday': '8:00 AM - 8:00 PM',
+    'Tuesday': '8:00 AM - 8:00 PM',
+    'Wednesday': '8:00 AM - 8:00 PM',
+    'Thursday': '8:00 AM - 8:00 PM',
+    'Friday': '8:00 AM - 9:00 PM',
+    'Saturday': '8:00 AM - 9:00 PM',
+    'Sunday': '9:00 AM - 6:00 PM',
+  }, 
+),
+BusinessModel(
+  id: '2',
+  name: 'Himalayan Cafe',
+
+  imageUrl:
+      'https://images.unsplash.com/photo-1555396273-367ea4eb4db5',
+
+  description:
+      'Authentic Nepali food and momo.',
+
+  address: 'Melbourne, Australia',
+
+  phone: '+61 412 345 678',
+
+  website: 'www.himalayaneverest.com.au',
+
+  category: 'Restaurent',
+
+  rating: 4.9,
+
+  reviewCount: 125,
+
+  openingHours: {
+    'Monday': '8:00 AM - 8:00 PM',
+    'Tuesday': '8:00 AM - 8:00 PM',
+    'Wednesday': '8:00 AM - 8:00 PM',
+    'Thursday': '8:00 AM - 8:00 PM',
+    'Friday': '8:00 AM - 9:00 PM',
+    'Saturday': '8:00 AM - 9:00 PM',
+    'Sunday': '9:00 AM - 6:00 PM',
+  },
+  
+)
   ];
 }
