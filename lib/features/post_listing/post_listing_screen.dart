@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sajha_app/features/post_listing/post_rent_room_screen.dart';
 import 'post_buysell_screen.dart';
 // import 'post_room_screen.dart';
 // import 'post_job_screen.dart';
@@ -37,12 +38,12 @@ class PostListingScreen extends StatelessWidget {
               title: 'Rent Room',
               icon: Icons.home_work_outlined,
               onTap: () {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //     builder: (context) => const PostRoomScreen(),
-                //   ),
-                // );
+                  Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PostRentRoomScreen(),
+                  ),
+                );
               },
             ),
 
