@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'post_buysell_screen.dart';
+// import 'post_room_screen.dart';
+// import 'post_job_screen.dart';
 
 class PostListingScreen extends StatelessWidget {
   const PostListingScreen({super.key});
@@ -17,6 +20,14 @@ class PostListingScreen extends StatelessWidget {
               context,
               title: 'Buy / Sell',
               icon: Icons.shopping_bag_outlined,
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PostBuySellScreen(),
+                  ),
+                );
+              },
             ),
 
             const SizedBox(height: 16),
@@ -25,6 +36,14 @@ class PostListingScreen extends StatelessWidget {
               context,
               title: 'Rent Room',
               icon: Icons.home_work_outlined,
+              onTap: () {
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => const PostRoomScreen(),
+                //   ),
+                // );
+              },
             ),
 
             const SizedBox(height: 16),
@@ -33,6 +52,14 @@ class PostListingScreen extends StatelessWidget {
               context,
               title: 'Job Listing',
               icon: Icons.work_outline,
+              onTap: () {
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (context) => const PostJobScreen(),
+                //   ),
+                // );
+              },
             ),
           ],
         ),
@@ -44,6 +71,7 @@ class PostListingScreen extends StatelessWidget {
     BuildContext context, {
     required String title,
     required IconData icon,
+    required VoidCallback onTap,
   }) {
     return Card(
       elevation: 2,
@@ -51,7 +79,7 @@ class PostListingScreen extends StatelessWidget {
         leading: Icon(icon, size: 30),
         title: Text(title),
         trailing: const Icon(Icons.arrow_forward_ios_rounded),
-        onTap: () {},
+        onTap: onTap,
       ),
     );
   }
