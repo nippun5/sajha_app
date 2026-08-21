@@ -104,6 +104,7 @@ Stack(
           style: TextStyle(
             color: Colors.black,
             fontSize: 10,
+            fontWeight: FontWeight.bold,
             letterSpacing: 0.5,
           ),
         ),
