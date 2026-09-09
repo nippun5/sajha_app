@@ -178,40 +178,42 @@ class _PostJobScreenState extends State<PostJobScreen> {
       appBar: AppBar(
         title: const Text('Post a Job'),
       ),
-      body: Stepper(
-        currentStep: currentStep,
-        onStepContinue: _onStepContinue,
-        onStepCancel: () {
-          if (currentStep > 0) setState(() => currentStep--);
-        },
-        controlsBuilder: (context, details) {
-          return Padding(
-            padding: const EdgeInsets.only(top: 20),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: details.onStepContinue,
-                    child: Text(currentStep == 2 ? 'Submit' : 'Next'),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                if (currentStep > 0)
+      body: SafeArea(
+        child: Stepper(
+          currentStep: currentStep,
+          onStepContinue: _onStepContinue,
+          onStepCancel: () {
+            if (currentStep > 0) setState(() => currentStep--);
+          },
+          controlsBuilder: (context, details) {
+            return Padding(
+              padding: const EdgeInsets.only(top: 20),
+              child: Row(
+                children: [
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed: details.onStepCancel,
-                      child: const Text('Back'),
+                    child: ElevatedButton(
+                      onPressed: details.onStepContinue,
+                      child: Text(currentStep == 2 ? 'Submit' : 'Next'),
                     ),
                   ),
-              ],
-            ),
-          );
-        },
-        steps: [
-          _buildStep0(),
-          _buildStep1(),
-          _buildStep2(),
-        ],
+                  const SizedBox(width: 10),
+                  if (currentStep > 0)
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: details.onStepCancel,
+                        child: const Text('Back'),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+          steps: [
+            _buildStep0(),
+            _buildStep1(),
+            _buildStep2(),
+          ],
+        ),
       ),
     );
   }
