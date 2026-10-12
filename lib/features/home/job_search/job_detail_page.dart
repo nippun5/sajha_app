@@ -31,31 +31,42 @@ class JobDetailPage extends StatelessWidget {
         title: const Text('Job Details'),
       ),
 
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    // Firebase chat later
-                  },
-                  icon: const Icon(Icons.message),
-                  label: const Text('Message'),
+       bottomNavigationBar: SafeArea(
+        child: Container(
+        padding: const EdgeInsets.all(2),
+        decoration: const BoxDecoration(
+          color: AppColors.background,
+          border: Border(
+            top: BorderSide(color: Color(0xFFEAEAEA)),
+          ),
+        ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      // Firebase chat later
+                    },
+                    icon: const Icon(Icons.message),
+                    label: const Text('Message'),
+                  ),
                 ),
-              ),
-
-              const SizedBox(width: 12),
-
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _callEmployer,
-                  icon: const Icon(Icons.call),
-                  label: const Text('Call'),
+          
+                const SizedBox(width: 12),
+          
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed:(){ 
+                      _callEmployer();
+                    },
+                    icon: const Icon(Icons.call),
+                    label: const Text('Call'),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

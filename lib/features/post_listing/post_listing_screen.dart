@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sajha_app/features/post_listing/post_job_screen.dart';
+import 'package:sajha_app/features/post_listing/post_rent_room_screen.dart';
 import 'post_buysell_screen.dart';
 // import 'post_room_screen.dart';
 // import 'post_job_screen.dart';
@@ -37,12 +39,12 @@ class PostListingScreen extends StatelessWidget {
               title: 'Rent Room',
               icon: Icons.home_work_outlined,
               onTap: () {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //     builder: (context) => const PostRoomScreen(),
-                //   ),
-                // );
+                  Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PostRentRoomScreen(),
+                  ),
+                );
               },
             ),
 
@@ -53,14 +55,63 @@ class PostListingScreen extends StatelessWidget {
               title: 'Job Listing',
               icon: Icons.work_outline,
               onTap: () {
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //     builder: (context) => const PostJobScreen(),
-                //   ),
-                // );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PostJobScreen(),
+                  ),
+                );
               },
             ),
+              const SizedBox(height: 16),
+Stack(
+  clipBehavior: Clip.none,
+  children: [
+    Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12), 
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFFD700).withAlpha(45),
+            blurRadius: 14,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: _buildOptionCard(
+        context,
+        title: 'Business Directory',
+        icon: Icons.business,
+        onTap: () {
+          // Navigator.push(...);
+        },
+      ),
+    ),
+    Positioned(
+      top: 4,
+      right: 4,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: const BoxDecoration(
+          color: Color(0xFFFFD700), 
+          borderRadius: BorderRadius.only(
+            topRight: Radius.circular(12), 
+            bottomLeft: Radius.circular(8),
+          ),
+        ),
+        child: const Text(
+          'PRO',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ),
+    ),
+  ],
+) 
           ],
         ),
       ),
