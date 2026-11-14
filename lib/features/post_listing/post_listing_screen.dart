@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sajha_app/features/post_listing/post_business_screen.dart';
 import 'package:sajha_app/features/post_listing/post_job_screen.dart';
 import 'package:sajha_app/features/post_listing/post_rent_room_screen.dart';
 import 'post_buysell_screen.dart';
@@ -83,7 +84,10 @@ Stack(
         title: 'Business Directory',
         icon: Icons.business,
         onTap: () {
-          // Navigator.push(...);
+          Navigator.push(   context,
+                  MaterialPageRoute(
+                    builder: (context) => const PostBusinessScreen(),
+                  ),);
         },
       ),
     ),
