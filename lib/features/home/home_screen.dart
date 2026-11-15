@@ -6,15 +6,46 @@ import 'rent_room/rent_room_page.dart';
 import 'job_search/job_search_page.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final ValueNotifier<int> categoryIndex;
+  final VoidCallback onProfileSelected;
+
+  const HomeScreen({
+    super.key,
+    required this.categoryIndex,
+    required this.onProfileSelected,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final PageController _pageCtrl = PageController();
-  int _currentTab = 0;
+late final PageController _pageCtrl;
+late int _currentTab;
+
+@override
+void initState() {
+  super.initState();
+
+  _currentTab = widget.categoryIndex.value;
+  _pageCtrl = PageController(initialPage: _currentTab);
+
+  widget.categoryIndex.addListener(_handleCategoryChange);
+}
+
+void _handleCategoryChange() {
+  if (!mounted) return;
+
+  final index = widget.categoryIndex.value;
+
+  if (index == _currentTab) return;
+
+  setState(() => _currentTab = index);
+
+  if (_pageCtrl.hasClients) {
+    _pageCtrl.jumpToPage(index);
+  }
+}
 
   static const _tabs = [
     _TabMeta(label: 'Buy & Sell',  icon: Icons.sell_outlined,  color: AppColors.buySell),
@@ -32,11 +63,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  @override
-  void dispose() {
-    _pageCtrl.dispose();
-    super.dispose();
-  }
+@override
+void dispose() {
+  widget.categoryIndex.removeListener(_handleCategoryChange);
+  _pageCtrl.dispose();
+  super.dispose();
+}
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +88,13 @@ class _HomeScreenState extends State<HomeScreen> {
           Expanded(
             child: PageView(
               controller: _pageCtrl,
-              onPageChanged: (i) => setState(() => _currentTab = i),
+              onPageChanged: (i) {
+                  setState(() => _currentTab = i);
+
+                  if (widget.categoryIndex.value != i) {
+                    widget.categoryIndex.value = i;
+                  }
+                },
               children: const [
                 BuySellPage(),
                 RentRoomPage(),
@@ -98,9 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
         Padding(
           padding: const EdgeInsets.only(right: 12),
           child: GestureDetector(
-            onTap: () {
-              // TODO: open profile
-            },
+          onTap: widget.onProfileSelected,
             child: const CircleAvatar(
               radius: 15,
               backgroundColor: AppColors.border,
