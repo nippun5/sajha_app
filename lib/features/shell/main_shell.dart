@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -11,6 +10,9 @@ import '../profile/profile_screen.dart';
 
 import 'package:sajha_app/business_directory/business_directory_screen.dart';
 
+import 'package:flutter/foundation.dart';
+import '../../core/auth/auth_session.dart';
+
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
@@ -21,9 +23,95 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
+  void _openPost() {
+    final session = AuthSession.instance;
+
+    if (session.canPost) {
+      context.push(AppConstants.postListingRoute);
+      return;
+    }
+
+    final needsPhoneVerification = session.isSignedIn;
+
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.lock_person_outlined,
+                size: 48,
+                color: AppColors.primary,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                needsPhoneVerification
+                    ? 'Verify your phone to post'
+                    : 'Join SaJHa to post',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                needsPhoneVerification
+                    ? 'Phone verification is required '
+                        'before publishing a listing.'
+                    : 'You can browse freely as a guest. '
+                        'Sign in and verify your phone '
+                        'to publish a listing.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 22),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: () {
+                    Navigator.pop(sheetContext);
+
+                    context.push(
+                      needsPhoneVerification
+                          ? AppConstants.phoneVerificationRoute
+                          : AppConstants.loginRoute,
+                    );
+                  },
+                  child: Text(
+                    needsPhoneVerification
+                        ? 'Verify Phone'
+                        : 'Sign In / Create Account',
+                  ),
+                ),
+              ),
+
+              // Only available during local development.
+              if (kDebugMode)
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(sheetContext);
+                    context.push(
+                      '${AppConstants.postListingRoute}'
+                      '?preview=1',
+                    );
+                  },
+                  child: const Text(
+                    'Preview posting forms (debug only)',
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   // Controls the selected Buy/Sell, Rooms or Jobs page.
-  final ValueNotifier<int> _marketplaceCategory =
-      ValueNotifier<int>(0);
+  final ValueNotifier<int> _marketplaceCategory = ValueNotifier<int>(0);
 
   @override
   void dispose() {
@@ -41,7 +129,7 @@ class _MainShellState extends State<MainShell> {
     // The middle Post destination opens the existing
     // posting screen instead of changing tabs.
     if (index == 2) {
-      context.push(AppConstants.postListingRoute);
+      _openPost();
       return;
     }
 
@@ -77,8 +165,7 @@ class _MainShellState extends State<MainShell> {
             onMarketplaceCategory: _openMarketplaceCategory,
             onBusinesses: () => _selectTab(3),
             onProfile: () => _selectTab(4),
-            onPost: () =>
-                context.push(AppConstants.postListingRoute),
+            onPost: _openPost,
           ),
 
           // Your existing Buy/Sell, Rooms and Jobs pages.
@@ -94,15 +181,12 @@ class _MainShellState extends State<MainShell> {
           const ProfileScreen(),
         ],
       ),
-
       bottomNavigationBar: NavigationBar(
         height: 72,
         selectedIndex: _currentIndex,
         backgroundColor: AppColors.surface,
-        indicatorColor:
-            AppColors.periwinkle.withOpacity(0.15),
-        labelBehavior:
-            NavigationDestinationLabelBehavior.alwaysShow,
+        indicatorColor: AppColors.periwinkle.withOpacity(0.15),
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         onDestinationSelected: _selectTab,
         destinations: const [
           NavigationDestination(

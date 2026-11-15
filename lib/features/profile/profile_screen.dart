@@ -1,7 +1,8 @@
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/auth/auth_session.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 
@@ -12,103 +13,151 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('My Profile'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          const SizedBox(height: 16),
-          const CircleAvatar(
-            radius: 44,
-            backgroundColor: AppColors.border,
-            child: Icon(
-              Icons.person_outline,
-              size: 42,
-              color: AppColors.primary,
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Welcome to SaJHa',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Your community marketplace account',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () {
-              context.push(AppConstants.loginRoute);
-            },
-            icon: const Icon(Icons.login),
-            label: const Text('Open Sign In'),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'Authentication is currently a frontend preview. '
-            'Real account information will be connected later.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.textSecondary,
-            ),
-          ),
-          const SizedBox(height: 24),
-          const Divider(),
-          const SizedBox(height: 12),
-          const _ProfileFeature(
-            icon: Icons.list_alt_outlined,
-            title: 'My Listings',
-            subtitle: 'Manage your marketplace posts',
-          ),
-          const _ProfileFeature(
-            icon: Icons.bookmark_border,
-            title: 'Saved Listings',
-            subtitle: 'View your favorite posts',
-          ),
-          const _ProfileFeature(
-            icon: Icons.storefront_outlined,
-            title: 'My Business Requests',
-            subtitle: 'Track pending, approved and declined requests',
-          ),
-          const _ProfileFeature(
-            icon: Icons.settings_outlined,
-            title: 'Account Settings',
-            subtitle: 'Manage contact details and privacy',
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'These sections will become interactive '
-            'when we complete the profile feature.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-            ),
-          ),
-        ],
+      appBar: AppBar(title: const Text('Profile')),
+      body: AnimatedBuilder(
+        animation: AuthSession.instance,
+        builder: (context, _) {
+          final session = AuthSession.instance;
+          return ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              if (!session.isSignedIn) ...[
+                const Center(
+                  child: CircleAvatar(
+                    radius: 40,
+                    backgroundColor: AppColors.border,
+                    child: Icon(Icons.person_outline,
+                        color: AppColors.primary, size: 42),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const Text(
+                  'Welcome to SaJHa',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 23,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Browse freely. Sign in to manage listings, '
+                  'post to the marketplace and rate businesses.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 20),
+                FilledButton.icon(
+                  onPressed: () => context.push(AppConstants.loginRoute),
+                  icon: const Icon(Icons.login),
+                  label: const Text('Sign In / Create Account'),
+                ),
+                if (kDebugMode) ...[
+                  const SizedBox(height: 6),
+                  TextButton(
+                    onPressed: () => context.push(
+                      AppConstants.phoneVerificationRoute,
+                    ),
+                    child: const Text('Preview phone verification UI (debug)'),
+                  ),
+                ],
+              ] else ...[
+                Center(
+                  child: CircleAvatar(
+                    radius: 40,
+                    backgroundColor: AppColors.border,
+                    child: Text(
+                      (session.account?.displayName.isNotEmpty ?? false)
+                          ? session.account!.displayName[0].toUpperCase()
+                          : 'S',
+                      style: const TextStyle(
+                          fontSize: 34, color: AppColors.primary),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  session.account?.displayName ?? 'SaJHa member',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  session.isPhoneVerified
+                      ? 'Phone verified'
+                      : 'Verify your phone before posting',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: session.isPhoneVerified
+                        ? AppColors.success
+                        : AppColors.warning,
+                  ),
+                ),
+                if (!session.isPhoneVerified) ...[
+                  const SizedBox(height: 12),
+                  FilledButton(
+                    onPressed: () => context.push(
+                      AppConstants.phoneVerificationRoute,
+                    ),
+                    child: const Text('Verify phone'),
+                  ),
+                ],
+                if (session.account?.email != null) ...[
+                  const SizedBox(height: 16),
+                  Text(session.account!.email!, textAlign: TextAlign.center),
+                ],
+                const SizedBox(height: 18),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    // TODO: call backend logout/revoke endpoint first.
+                    session.clearLocalSession();
+                    context.go(AppConstants.loginRoute);
+                  },
+                  icon: const Icon(Icons.logout),
+                  label: const Text('Sign Out'),
+                ),
+              ],
+              const SizedBox(height: 24),
+              const Divider(),
+              const SizedBox(height: 12),
+              const _ProfileSection(
+                icon: Icons.list_alt_outlined,
+                title: 'My Listings',
+                subtitle: 'Manage posts and listing status — next stage',
+              ),
+              const _ProfileSection(
+                icon: Icons.bookmark_outline,
+                title: 'Saved Listings',
+                subtitle: 'Your saved marketplace items — next stage',
+              ),
+              const _ProfileSection(
+                icon: Icons.storefront_outlined,
+                title: 'My Business Requests',
+                subtitle: 'Pending, Approved, Declined — next stage',
+              ),
+              const _ProfileSection(
+                icon: Icons.settings_outlined,
+                title: 'Account & Privacy',
+                subtitle:
+                    'Contact preferences and account settings — next stage',
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 }
 
-class _ProfileFeature extends StatelessWidget {
+class _ProfileSection extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
 
-  const _ProfileFeature({
+  const _ProfileSection({
     required this.icon,
     required this.title,
     required this.subtitle,
@@ -116,11 +165,12 @@ class _ProfileFeature extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.primary),
-      title: Text(title),
-      subtitle: Text(subtitle),
-      contentPadding: const EdgeInsets.symmetric(vertical: 4),
+    return Card(
+      child: ListTile(
+        leading: Icon(icon, color: AppColors.primary),
+        title: Text(title),
+        subtitle: Text(subtitle),
+      ),
     );
   }
 }

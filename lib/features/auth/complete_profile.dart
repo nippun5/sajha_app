@@ -1,295 +1,263 @@
+
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 
 class CompleteProfileScreen extends StatefulWidget {
   final Map<String, dynamic> userData;
-  const CompleteProfileScreen({super.key, required this.userData});
+
+  const CompleteProfileScreen({
+    super.key,
+    required this.userData,
+  });
 
   @override
-  State<CompleteProfileScreen> createState() => _CompleteProfileScreenState();
+  State<CompleteProfileScreen> createState() =>
+      _CompleteProfileScreenState();
 }
 
-class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
+class _CompleteProfileScreenState
+    extends State<CompleteProfileScreen> {
   final _formKey = GlobalKey<FormState>();
+
+  final _nameCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
-  final _streetCtrl = TextEditingController();
-  final _suburbCtrl = TextEditingController();
-  final _stateCtrl = TextEditingController();
-  final _postcodeCtrl = TextEditingController();
+  final _cityCtrl = TextEditingController();
+  final _regionCtrl = TextEditingController();
 
-  bool _isLoading = false;
   String _dialCode = AppConstants.defaultDialCode;
-  String _flag = AppConstants.defaultCountryFlag;
 
-  String get _provider =>
-      widget.userData['provider'] as String? ?? 'social';
+  String get _provider {
+    final provider =
+        widget.userData['provider'] as String? ?? 'social';
+
+    if (provider.isEmpty) return 'Social';
+
+    return '${provider[0].toUpperCase()}'
+        '${provider.substring(1)}';
+  }
 
   @override
   void dispose() {
+    _nameCtrl.dispose();
     _phoneCtrl.dispose();
-    _streetCtrl.dispose();
-    _suburbCtrl.dispose();
-    _stateCtrl.dispose();
-    _postcodeCtrl.dispose();
+    _cityCtrl.dispose();
+    _regionCtrl.dispose();
     super.dispose();
   }
 
-  Future<void> _submit() async {
+  void _submit() {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _isLoading = true);
-    // TODO: POST profile data to Java API
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      setState(() => _isLoading = false);
-      context.go(AppConstants.shellRoute);
-    }
+
+    // Frontend preview only.
+    // After real authentication:
+    // 1. Save contact information through backend.
+    // 2. Verify the phone number through OTP.
+    // 3. Allow publishing only after verification.
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Profile form ready'),
+        content: const Text(
+          'Your profile information passed validation. '
+          'No data has been saved and your phone number '
+          'has not been verified yet.',
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final tt = Theme.of(context).textTheme;
-
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
         title: const Text('Complete Profile'),
-        automaticallyImplyLeading: false,
-        actions: [
-          TextButton(
-            onPressed: () => context.go(AppConstants.shellRoute),
-            child: const Text('Skip',
-                style: TextStyle(color: AppColors.textSecondary)),
-          ),
-        ],
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          padding: const EdgeInsets.all(24),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Progress ──────────────────────────────
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: 0.7,
-                    minHeight: 4,
-                    backgroundColor: AppColors.border,
-                    valueColor: const AlwaysStoppedAnimation(AppColors.primary),
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text('70% complete',
-                    style: tt.bodySmall
-                        ?.copyWith(color: AppColors.textHint)),
+                const SizedBox(height: 16),
 
-                const SizedBox(height: 24),
-
-                // ── Provider badge ────────────────────────
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.08),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                        color: AppColors.success.withOpacity(0.2)),
+                    color:
+                        AppColors.periwinkle.withOpacity(0.10),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.check_circle_outline,
-                          color: AppColors.success, size: 16),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Signed in with ${_capitalize(_provider)}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.success,
+                      const Icon(
+                        Icons.info_outline,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          '$_provider profile setup preview. '
+                          'No account has been authenticated.',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textPrimary,
+                          ),
                         ),
                       ),
                     ],
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 28),
 
-                Text('Just a few more details',
-                    style: tt.titleLarge
-                        ?.copyWith(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 6),
-                Text(
-                  'Help us connect you with listings near you.',
-                  style: tt.bodyMedium
-                      ?.copyWith(color: AppColors.textSecondary),
+                const Text(
+                  'Tell us about yourself',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                const Text(
+                  'Your profile helps other community '
+                  'members connect with you.',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    height: 1.5,
+                  ),
                 ),
 
                 const SizedBox(height: 28),
 
-                // ── Phone ─────────────────────────────────
-                _SectionLabel(label: 'Contact number'),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    _DialButton(
-                        flag: _flag,
-                        code: _dialCode,
-                        onTap: () {
-                          // TODO: open country picker (reuse from login)
-                        }),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _phoneCtrl,
-                        keyboardType: TextInputType.phone,
-                        validator: (v) => (v == null || v.isEmpty)
-                            ? 'Phone is required'
-                            : null,
-                        decoration: const InputDecoration(
-                          hintText: 'Mobile number',
-                          prefixIcon:
-                              Icon(Icons.phone_outlined, size: 20),
-                        ),
-                      ),
-                    ),
-                  ],
+                TextFormField(
+                  controller: _nameCtrl,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(
+                    labelText: 'Display name',
+                    prefixIcon: Icon(Icons.person_outline),
+                  ),
+                  validator: (value) {
+                    if ((value ?? '').trim().length < 2) {
+                      return 'Enter your name';
+                    }
+                    return null;
+                  },
                 ),
 
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-                // ── Address ───────────────────────────────
-                _SectionLabel(label: 'Address'),
-                const SizedBox(height: 8),
-                TextFormField(
-                  controller: _streetCtrl,
-                  validator: (v) => (v == null || v.isEmpty)
-                      ? 'Street address is required'
-                      : null,
+                DropdownButtonFormField<String>(
+                  value: _dialCode,
+                  isExpanded: true,
                   decoration: const InputDecoration(
-                    labelText: 'Street address',
+                    labelText: 'Country dial code',
+                    prefixIcon: Icon(Icons.public),
+                  ),
+                  items: AppConstants.countries.map((country) {
+                    return DropdownMenuItem<String>(
+                      value: country['code']!,
+                      child: Text(
+                        '${country['flag']} ${country['name']} '
+                        '(${country['code']})',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _dialCode = value);
+                    }
+                  },
+                ),
+
+                const SizedBox(height: 12),
+
+                TextFormField(
+                  controller: _phoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Contact number',
+                    prefixIcon: Icon(Icons.phone_outlined),
+                    helperText:
+                        'Required before publishing listings',
+                  ),
+                  validator: (value) {
+                    final digits = (value ?? '')
+                        .replaceAll(RegExp(r'\D'), '');
+
+                    if (digits.length < 7 ||
+                        digits.length > 15) {
+                      return 'Enter a valid phone number';
+                    }
+                    return null;
+                  },
+                ),
+
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _cityCtrl,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(
+                    labelText: 'City (optional)',
                     prefixIcon:
-                        Icon(Icons.location_on_outlined, size: 20),
+                        Icon(Icons.location_city_outlined),
                   ),
                 ),
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: TextFormField(
-                        controller: _suburbCtrl,
-                        validator: (v) =>
-                            (v == null || v.isEmpty) ? 'Required' : null,
-                        decoration:
-                            const InputDecoration(labelText: 'Suburb'),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 2,
-                      child: TextFormField(
-                        controller: _stateCtrl,
-                        validator: (v) =>
-                            (v == null || v.isEmpty) ? 'Required' : null,
-                        decoration:
-                            const InputDecoration(labelText: 'State'),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 2,
-                      child: TextFormField(
-                        controller: _postcodeCtrl,
-                        keyboardType: TextInputType.number,
-                        validator: (v) =>
-                            (v == null || v.isEmpty) ? 'Required' : null,
-                        decoration:
-                            const InputDecoration(labelText: 'Postcode'),
-                      ),
-                    ),
-                  ],
+
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _regionCtrl,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: const InputDecoration(
+                    labelText: 'State / Region (optional)',
+                    prefixIcon: Icon(Icons.map_outlined),
+                  ),
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 18),
 
-                // ── Submit ────────────────────────────────
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _submit,
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                              color: Colors.white, strokeWidth: 2),
-                        )
-                      : const Text('Save & Continue'),
+                const Text(
+                  'Your phone number will not be displayed '
+                  'publicly unless you choose to show it '
+                  'when publishing a listing.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                    height: 1.5,
+                  ),
                 ),
 
-                const SizedBox(height: 32),
+                const SizedBox(height: 28),
+
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _submit,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      minimumSize: const Size.fromHeight(52),
+                    ),
+                    child: const Text('Continue'),
+                  ),
+                ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  String _capitalize(String s) =>
-      s.isEmpty ? s : '${s[0].toUpperCase()}${s.substring(1)}';
-}
-
-// ── Private sub-widgets ───────────────────────────────────────────────────────
-
-class _SectionLabel extends StatelessWidget {
-  final String label;
-  const _SectionLabel({required this.label});
-  @override
-  Widget build(BuildContext context) => Text(
-        label,
-        style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary),
-      );
-}
-
-class _DialButton extends StatelessWidget {
-  final String flag;
-  final String code;
-  final VoidCallback onTap;
-  const _DialButton(
-      {required this.flag, required this.code, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 50,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          border: Border.all(color: AppColors.border),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(flag, style: const TextStyle(fontSize: 20)),
-            const SizedBox(width: 4),
-            Text(code,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w600, fontSize: 14)),
-            const SizedBox(width: 2),
-            const Icon(Icons.expand_more,
-                size: 16, color: AppColors.textHint),
-          ],
         ),
       ),
     );
