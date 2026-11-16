@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_constants.dart';
@@ -32,25 +31,85 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   // ── Actions ──────────────────────────────────────────────────
-  Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _isLoading = true);
-    // TODO: call Java auth API
-    await Future.delayed(const Duration(seconds: 1));
-    if (mounted) {
-      setState(() => _isLoading = false);
-      context.go(AppConstants.shellRoute);
-    }
-  }
+ 
+void _login() {
+  if (!_formKey.currentState!.validate()) return;
+
+  // Frontend preview only.
+  // TODO: call Spring Boot auth endpoint and verify session.
+  showDialog<void>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Login preview'),
+      content: const Text(
+        'Your form is valid, but SaJHa authentication '
+        'is not connected yet. No password was checked '
+        'and no session was created.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: const Text('Close'),
+        ),
+        FilledButton(
+          onPressed: () {
+            Navigator.pop(dialogContext);
+            context.go(AppConstants.shellRoute);
+          },
+          child: const Text('Browse as guest'),
+        ),
+      ],
+    ),
+  );
+}
+
 
   void _socialLogin(String provider) {
-    // TODO: Implement Google / Apple / Facebook SDK auth
-    // After obtaining the social token, check if profile is complete.
-    // If not → complete-profile. If yes → shell.
-    context.push(
-      AppConstants.completeProfileRoute,
-      extra: {'provider': provider},
-    );
+
+void _socialLogin(String provider) {
+  final providerName = switch (provider) {
+    'google' => 'Google',
+    'facebook' => 'Facebook',
+    'apple' => 'Apple',
+    _ => 'Social',
+  };
+
+  showDialog<void>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text('Continue with $providerName'),
+      content: Text(
+        '$providerName authentication is not connected yet. '
+        'Once integrated, SaJHa will verify your identity '
+        'with $providerName and the backend.\n\n'
+        'You can preview the profile-completion screen '
+        'without creating or signing into an account.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: () {
+            Navigator.pop(dialogContext);
+
+            // UI preview, NOT successful social authentication.
+            context.push(
+              AppConstants.completeProfileRoute,
+              extra: {
+                'provider': provider,
+                'preview': true,
+              },
+            );
+          },
+          child: const Text('Preview Setup'),
+        ),
+      ],
+    ),
+  );
+}
+
   }
 
   void _openCountryPicker() {
@@ -161,9 +220,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {
-                      // TODO: navigate to forgot password
-                    },
+               onPressed: () {
+                    context.push(AppConstants.forgotPasswordRoute);
+                  },
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 0, vertical: 8),
@@ -186,7 +245,31 @@ class _LoginScreenState extends State<LoginScreen> {
                       : const Text('Sign In'),
                 ),
 
-                const SizedBox(height: 24),
+              
+const SizedBox(height: 8),
+
+SizedBox(
+  width: double.infinity,
+  child: TextButton.icon(
+    onPressed: () {
+      context.go(AppConstants.shellRoute);
+    },
+    icon: const Icon(
+      Icons.explore_outlined,
+      color: AppColors.primary,
+    ),
+    label: const Text(
+      'Continue as Guest',
+      style: TextStyle(
+        color: AppColors.primary,
+        fontWeight: FontWeight.w600,
+      ),
+    ),
+  ),
+),
+
+const SizedBox(height: 24),
+
 
                 // ── Divider ───────────────────────────────
                 const _OrDivider(),
@@ -216,28 +299,36 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 32),
 
                 // ── Register ──────────────────────────────
-                Center(
-                  child: RichText(
-                    text: TextSpan(
-                      text: "Don't have an account?  ",
-                      style: tt.bodyMedium
-                          ?.copyWith(color: AppColors.textSecondary),
-                      children: [
-                        TextSpan(
-                          text: 'Sign Up',
-                          style: const TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                          recognizer: TapGestureRecognizer()
-                            ..onTap = () {
-                              // TODO: navigate to register
-                            },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+                
+Center(
+  child: Wrap(
+    alignment: WrapAlignment.center,
+    crossAxisAlignment: WrapCrossAlignment.center,
+    spacing: 4,
+    children: [
+      const Text(
+        "Don't have an account?",
+        style: TextStyle(
+          color: AppColors.textSecondary,
+        ),
+      ),
+      TextButton(
+        onPressed: () {
+          context.push(AppConstants.signupRoute);
+        },
+        child: const Text(
+          'Sign Up',
+          style: TextStyle(
+            color: AppColors.primary,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    ],
+  ),
+),
+
+
 
                 const SizedBox(height: 32),
               ],

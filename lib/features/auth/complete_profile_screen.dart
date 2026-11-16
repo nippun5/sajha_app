@@ -23,8 +23,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   String _dialCode = AppConstants.defaultDialCode;
   String _flag = AppConstants.defaultCountryFlag;
 
-  String get _provider =>
-      widget.userData['provider'] as String? ?? 'social';
+  String get _provider => widget.userData['provider'] as String? ?? 'social';
 
   @override
   void dispose() {
@@ -85,20 +84,19 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 ),
                 const SizedBox(height: 6),
                 Text('70% complete',
-                    style: tt.bodySmall
-                        ?.copyWith(color: AppColors.textHint)),
+                    style: tt.bodySmall?.copyWith(color: AppColors.textHint)),
 
                 const SizedBox(height: 24),
 
                 // ── Provider badge ────────────────────────
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: AppColors.success.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                        color: AppColors.success.withOpacity(0.2)),
+                    border:
+                        Border.all(color: AppColors.success.withOpacity(0.2)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -121,13 +119,13 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 const SizedBox(height: 24),
 
                 Text('Just a few more details',
-                    style: tt.titleLarge
-                        ?.copyWith(fontWeight: FontWeight.w700)),
+                    style:
+                        tt.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
                 const SizedBox(height: 6),
                 Text(
                   'Help us connect you with listings near you.',
-                  style: tt.bodyMedium
-                      ?.copyWith(color: AppColors.textSecondary),
+                  style:
+                      tt.bodyMedium?.copyWith(color: AppColors.textSecondary),
                 ),
 
                 const SizedBox(height: 28),
@@ -153,8 +151,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                             : null,
                         decoration: const InputDecoration(
                           hintText: 'Mobile number',
-                          prefixIcon:
-                              Icon(Icons.phone_outlined, size: 20),
+                          prefixIcon: Icon(Icons.phone_outlined, size: 20),
                         ),
                       ),
                     ),
@@ -173,8 +170,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                       : null,
                   decoration: const InputDecoration(
                     labelText: 'Street address',
-                    prefixIcon:
-                        Icon(Icons.location_on_outlined, size: 20),
+                    prefixIcon: Icon(Icons.location_on_outlined, size: 20),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -186,8 +182,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         controller: _suburbCtrl,
                         validator: (v) =>
                             (v == null || v.isEmpty) ? 'Required' : null,
-                        decoration:
-                            const InputDecoration(labelText: 'Suburb'),
+                        decoration: const InputDecoration(labelText: 'Suburb'),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -197,8 +192,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                         controller: _stateCtrl,
                         validator: (v) =>
                             (v == null || v.isEmpty) ? 'Required' : null,
-                        decoration:
-                            const InputDecoration(labelText: 'State'),
+                        decoration: const InputDecoration(labelText: 'State'),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -284,11 +278,10 @@ class _DialButton extends StatelessWidget {
             Text(flag, style: const TextStyle(fontSize: 20)),
             const SizedBox(width: 4),
             Text(code,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w600, fontSize: 14)),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
             const SizedBox(width: 2),
-            const Icon(Icons.expand_more,
-                size: 16, color: AppColors.textHint),
+            const Icon(Icons.expand_more, size: 16, color: AppColors.textHint),
           ],
         ),
       ),
