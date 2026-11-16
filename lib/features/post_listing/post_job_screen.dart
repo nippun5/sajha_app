@@ -236,8 +236,9 @@ class _PostJobScreenState extends State<PostJobScreen> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.work_outline),
               ),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Job title is required' : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Job title is required'
+                  : null,
             ),
             const SizedBox(height: 15),
 
@@ -249,8 +250,9 @@ class _PostJobScreenState extends State<PostJobScreen> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.business_outlined),
               ),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Company name is required' : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Company name is required'
+                  : null,
             ),
             const SizedBox(height: 15),
 
@@ -262,8 +264,9 @@ class _PostJobScreenState extends State<PostJobScreen> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.location_on_outlined),
               ),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Location is required' : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Location is required'
+                  : null,
             ),
             const SizedBox(height: 15),
 
@@ -298,7 +301,8 @@ class _PostJobScreenState extends State<PostJobScreen> {
                       ))
                   .toList(),
               onChanged: (v) => setState(() => selectedSalaryCycle = v),
-              validator: (v) => v == null ? 'Please select a salary cycle' : null,
+              validator: (v) =>
+                  v == null ? 'Please select a salary cycle' : null,
             ),
             const SizedBox(height: 15),
 
@@ -472,8 +476,9 @@ class _PostJobScreenState extends State<PostJobScreen> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.phone_outlined),
               ),
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Phone number is required' : null,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Phone number is required'
+                  : null,
             ),
             const SizedBox(height: 20),
 

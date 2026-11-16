@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/auth/auth_session.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
+import '../marketplace/data/marketplace_mock_store.dart';
 import 'account_settings_screen.dart';
 import 'business_requests_screen.dart';
 import 'data/profile_demo_store.dart';
@@ -57,12 +58,13 @@ class ProfileScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = ProfileDemoStore.instance;
     final auth = AuthSession.instance;
+    final market = MarketplaceMockStore.instance;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('My Profile')),
       body: AnimatedBuilder(
-        animation: Listenable.merge([auth, store]),
+        animation: Listenable.merge([auth, store, market]),
         builder: (context, _) {
           final signedIn = auth.isSignedIn;
           final preview = kDebugMode && store.previewEnabled;
@@ -150,13 +152,13 @@ class ProfileScreen extends StatelessWidget {
               Row(children: [
                 Expanded(
                     child: _SummaryCard(
-                        value: '${store.myListings.length}',
+                        value: '${market.myListings.length}',
                         label: 'My Listings',
                         icon: Icons.inventory_2_outlined)),
                 const SizedBox(width: 8),
                 Expanded(
                     child: _SummaryCard(
-                        value: '${store.savedListings.length}',
+                        value: '${market.savedListings.length}',
                         label: 'Saved',
                         icon: Icons.bookmark_outline)),
                 const SizedBox(width: 8),

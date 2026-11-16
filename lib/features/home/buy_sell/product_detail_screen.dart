@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../models/product_model.dart';
 
-
 class ProductDetailScreen extends StatelessWidget {
   final ProductModel product;
 
@@ -12,54 +11,52 @@ class ProductDetailScreen extends StatelessWidget {
     super.key,
     required this.product,
   });
- Future<void> _callSeller(String phone) async {
-  final Uri uri = Uri.parse('tel:$phone');
+  Future<void> _callSeller(String phone) async {
+    final Uri uri = Uri.parse('tel:$phone');
 
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(
-      uri,
-      mode: LaunchMode.externalApplication,
-    );
-  } else {
-    debugPrint('Could not launch call');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+    } else {
+      debugPrint('Could not launch call');
+    }
   }
-}
 
   Future<void> _messageSeller(String phone) async {
-  final Uri uri = Uri.parse('sms:$phone');
+    final Uri uri = Uri.parse('sms:$phone');
 
-  if (await canLaunchUrl(uri)) {
-    await launchUrl(
-      uri,
-      mode: LaunchMode.externalApplication,
-    );
-  } else {
-    debugPrint('Could not launch sms');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+    } else {
+      debugPrint('Could not launch sms');
+    }
   }
-}
-  
+
   @override
   Widget build(BuildContext context) {
-      return Scaffold(
+    return Scaffold(
       backgroundColor: AppColors.background,
-
       appBar: AppBar(
         title: const Text('Product Details'),
       ),
-
       bottomNavigationBar: SafeArea(
         child: Container(
-        padding: const EdgeInsets.all(2),
-        decoration: const BoxDecoration(
-          color: AppColors.background,
-          border: Border(
-            top: BorderSide(color: Color(0xFFEAEAEA)),
+          padding: const EdgeInsets.all(2),
+          decoration: const BoxDecoration(
+            color: AppColors.background,
+            border: Border(
+              top: BorderSide(color: Color(0xFFEAEAEA)),
+            ),
           ),
-        ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
-              children: [ 
+              children: [
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
@@ -69,12 +66,10 @@ class ProductDetailScreen extends StatelessWidget {
                     label: const Text('Message'),
                   ),
                 ),
-          
                 const SizedBox(width: 12),
-          
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed:(){ 
+                    onPressed: () {
                       _callSeller(product.sellerPhone);
                     },
                     icon: const Icon(Icons.call),
@@ -86,111 +81,110 @@ class ProductDetailScreen extends StatelessWidget {
           ),
         ),
       ),
-      
- body: SingleChildScrollView(
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-
-  /// Product Image
-SizedBox(
-  height: 300,
-  width: double.infinity,
-  child: product.imageUrls.isNotEmpty
-      ? Image.network(
-          product.imageUrls.first,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              color: Colors.grey.shade200,
-              child: const Center(
-                child: Icon(
-                  Icons.image_not_supported,
-                  size: 60,
-                  color: Colors.grey,
-                ),
-              ),
-            );
-          },
-        )
-      : Container(
-          color: Colors.grey.shade200,
-          child: const Center(
-            child: Icon(
-              Icons.image,
-              size: 60,
-              color: Colors.grey,
-            ),
-          ),
-        ),
-),
-
-      Padding(
-        padding: const EdgeInsets.all(16),
+      body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-            /// Title
-            Text(
-              product.title,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+            /// Product Image
+            SizedBox(
+              height: 300,
+              width: double.infinity,
+              child: product.imageUrls.isNotEmpty
+                  ? Image.network(
+                      product.imageUrls.first,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey.shade200,
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_not_supported,
+                              size: 60,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
+                      color: Colors.grey.shade200,
+                      child: const Center(
+                        child: Icon(
+                          Icons.image,
+                          size: 60,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
             ),
 
-            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// Title
+                  Text(
+                    product.title,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
 
-            /// Price
-            Text(
-              '\$${product.price}',
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: AppColors.buySell,
-              ),
-            ),
+                  const SizedBox(height: 12),
 
-            const SizedBox(height: 16),
+                  /// Price
+                  Text(
+                    '\$${product.price}',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.buySell,
+                    ),
+                  ),
 
-            /// Chips
-            Row(
-              children: [
-                _infoChip(product.condition.label),
-                const SizedBox(width: 10),
-                _infoChip(product.category),
-              ],
-            ),
+                  const SizedBox(height: 16),
 
-            const SizedBox(height: 20),
+                  /// Chips
+                  Row(
+                    children: [
+                      _infoChip(product.condition.label),
+                      const SizedBox(width: 10),
+                      _infoChip(product.category),
+                    ],
+                  ),
 
-            /// Description
-            const Text(
-              'Description',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+                  const SizedBox(height: 20),
 
-            const SizedBox(height: 8),
+                  /// Description
+                  const Text(
+                    'Description',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
 
-            Text(
-              product.description,
-              style: const TextStyle(
-                fontSize: 15,
-                height: 1.5,
+                  const SizedBox(height: 8),
+
+                  Text(
+                    product.description,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
       ),
-    ],
-  ),
-),);
+    );
   }
- Widget _infoChip(String label) {
+
+  Widget _infoChip(String label) {
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: 12,
@@ -210,7 +204,4 @@ SizedBox(
       ),
     );
   }
-
-
-
-  }
+}

@@ -1,104 +1,79 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../core/auth/auth_session.dart';
 import '../../core/theme/app_colors.dart';
+import '../marketplace/data/marketplace_mock_store.dart';
+import '../marketplace/marketplace_detail_screen.dart';
 import 'data/profile_demo_store.dart';
 import 'profile_widgets.dart';
 
-class SavedListingsScreen extends StatefulWidget {
+/// Reads the exact same listing IDs used in Marketplace and Detail screens.
+/// The old separate sample catalog is no longer used.
+class SavedListingsScreen extends StatelessWidget {
   const SavedListingsScreen({super.key});
 
   @override
-  State<SavedListingsScreen> createState() => _SavedListingsScreenState();
-}
-
-class _SavedListingsScreenState extends State<SavedListingsScreen> {
-  final _store = ProfileDemoStore.instance;
-  bool _showCatalog = false;
-
-  @override
   Widget build(BuildContext context) {
+    final market = MarketplaceMockStore.instance;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('Saved Listings')),
       body: AnimatedBuilder(
-        animation: Listenable.merge([_store, AuthSession.instance]),
+        animation: Listenable.merge([market, ProfileDemoStore.instance]),
         builder: (context, _) {
-          final allowed = AuthSession.instance.isSignedIn ||
-              (kDebugMode && _store.previewEnabled);
-          if (!allowed) {
+          if (!ProfileDemoStore.instance.previewEnabled) {
             return const ProfileEmptyState(
-                icon: Icons.bookmark_border,
-                title: 'Save your favorite listings',
-                message: 'Sign in to keep a list of products, rooms and jobs '
-                    'you want to revisit.');
+              icon: Icons.bookmark_border,
+              title: 'Save your favorite listings',
+              message: 'Sign in to save listings. While developing, '
+                  'turn on Profile demo mode to test bookmarks locally.',
+            );
           }
-          final items = _showCatalog ? _store.catalog : _store.savedListings;
+          final items = market.savedListings;
           return ListView(padding: const EdgeInsets.all(16), children: [
-            if (_store.previewEnabled) ...[
-              const DemoBanner(),
-              const SizedBox(height: 14),
-            ],
-            const Text('Your favorites',
+            const DemoBanner(),
+            const SizedBox(height: 12),
+            const Text('Your saved listings',
                 style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary)),
             const SizedBox(height: 6),
-            const Text('Save items to revisit them later.',
+            const Text('Saved from the real marketplace preview cards.',
                 style: TextStyle(color: AppColors.textSecondary)),
-            if (_store.previewEnabled) ...[
-              const SizedBox(height: 14),
-              SegmentedButton<bool>(
-                segments: const [
-                  ButtonSegment(value: false, label: Text('Saved')),
-                  ButtonSegment(value: true, label: Text('Demo catalog')),
-                ],
-                selected: {_showCatalog},
-                onSelectionChanged: (selected) =>
-                    setState(() => _showCatalog = selected.first),
-              ),
-            ],
             const SizedBox(height: 14),
             if (items.isEmpty)
-              ProfileEmptyState(
+              const ProfileEmptyState(
                 icon: Icons.bookmarks_outlined,
-                title: _showCatalog ? 'No demo items' : 'No saved listings',
-                message: _showCatalog
-                    ? 'The demo catalog is empty.'
-                    : 'Items you bookmark will appear here.',
+                title: 'No saved items yet',
+                message: 'Open Marketplace and tap the bookmark icon.',
               )
             else
-              ...items.map(_listingCard),
+              ...items.map((item) => Card(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    child: ListTile(
+                      leading: const CircleAvatar(
+                          backgroundColor: AppColors.background,
+                          child: Icon(Icons.bookmark, color: AppColors.coral)),
+                      title: Text(item.title,
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                      subtitle: Text(
+                          '${item.kind.label} · ${item.priceLabel}\n${item.location}'),
+                      isThreeLine: true,
+                      onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute<void>(
+                              builder: (_) =>
+                                  MarketplaceDetailScreen(item: item))),
+                      trailing: IconButton(
+                        tooltip: 'Remove saved item',
+                        icon: const Icon(Icons.bookmark_remove_outlined,
+                            color: AppColors.coral),
+                        onPressed: () => market.toggleSaved(item.id),
+                      ),
+                    ),
+                  )),
           ]);
         },
-      ),
-    );
-  }
-
-  Widget _listingCard(ProfileListing item) {
-    final saved = _store.isSaved(item.id);
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: ListTile(
-        contentPadding: const EdgeInsets.fromLTRB(14, 8, 12, 8),
-        leading: CircleAvatar(
-          backgroundColor: AppColors.periwinkle.withOpacity(0.12),
-          child: Icon(iconForListing(item.type), color: AppColors.primary),
-        ),
-        title: Text(item.title,
-            style: const TextStyle(fontWeight: FontWeight.bold)),
-        subtitle:
-            Text('${item.priceLabel}  •  ${item.location}\n${item.type.label}'),
-        isThreeLine: true,
-        trailing: IconButton(
-          tooltip: saved ? 'Remove bookmark (demo)' : 'Save bookmark (demo)',
-          onPressed:
-              _store.previewEnabled ? () => _store.toggleSaved(item.id) : null,
-          icon: Icon(saved ? Icons.bookmark : Icons.bookmark_border,
-              color: saved ? AppColors.coral : AppColors.textSecondary),
-        ),
       ),
     );
   }

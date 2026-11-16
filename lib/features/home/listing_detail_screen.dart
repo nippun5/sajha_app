@@ -25,7 +25,6 @@ class ListingDetailScreen extends StatelessWidget {
               height: 300,
               fit: BoxFit.cover,
             ),
-
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -38,9 +37,7 @@ class ListingDetailScreen extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 10),
-
                   Text(
                     listing.price,
                     style: const TextStyle(
@@ -48,13 +45,9 @@ class ListingDetailScreen extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-
                   const SizedBox(height: 20),
-
                   Text(listing.description),
-
                   const SizedBox(height: 20),
-
                   Row(
                     children: [
                       const Icon(Icons.location_on_outlined),

@@ -32,15 +32,13 @@ class PostListingScreen extends StatelessWidget {
                 );
               },
             ),
-
             const SizedBox(height: 16),
-
             _buildOptionCard(
               context,
               title: 'Rent Room',
               icon: Icons.home_work_outlined,
               onTap: () {
-                  Navigator.push(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const PostRentRoomScreen(),
@@ -48,9 +46,7 @@ class PostListingScreen extends StatelessWidget {
                 );
               },
             ),
-
             const SizedBox(height: 16),
-
             _buildOptionCard(
               context,
               title: 'Job Listing',
@@ -64,58 +60,61 @@ class PostListingScreen extends StatelessWidget {
                 );
               },
             ),
-              const SizedBox(height: 16),
-Stack(
-  clipBehavior: Clip.none,
-  children: [
-    Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12), 
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFFFD700).withAlpha(45),
-            blurRadius: 14,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: _buildOptionCard(
-        context,
-        title: 'Business Directory',
-        icon: Icons.business,
-        onTap: () {
-          Navigator.push(   context,
-                  MaterialPageRoute(
-                    builder: (context) => const PostBusinessScreen(),
-                  ),);
-        },
-      ),
-    ),
-    Positioned(
-      top: 4,
-      right: 4,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: const BoxDecoration(
-          color: Color(0xFFFFD700), 
-          borderRadius: BorderRadius.only(
-            topRight: Radius.circular(12), 
-            bottomLeft: Radius.circular(8),
-          ),
-        ),
-        child: const Text(
-          'PRO',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.5,
-          ),
-        ),
-      ),
-    ),
-  ],
-) 
+            const SizedBox(height: 16),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFFD700).withAlpha(45),
+                        blurRadius: 14,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: _buildOptionCard(
+                    context,
+                    title: 'Business Directory',
+                    icon: Icons.business,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PostBusinessScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFFFD700),
+                      borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(12),
+                        bottomLeft: Radius.circular(8),
+                      ),
+                    ),
+                    child: const Text(
+                      'PRO',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
           ],
         ),
       ),
