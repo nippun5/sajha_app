@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/data/dummy_data.dart';
 import '../../../shared/widgets/room_card.dart';
+import 'room_detail_page.dart';
 
 class RentRoomPage extends StatefulWidget {
   const RentRoomPage({super.key});
@@ -109,7 +110,14 @@ class _RentRoomPageState extends State<RentRoomPage> {
                 child: RoomCard(
                   room: rooms[i],
                   onTap: () {
-                    // TODO: navigate to room detail
+                    Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => RoomDetailPage(
+        room: rooms[i],
+      ),
+    ),
+  );
                   },
                 ),
               ),

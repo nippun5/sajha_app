@@ -41,60 +41,49 @@ class ProductDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
       return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
 
       appBar: AppBar(
         title: const Text('Product Details'),
       ),
 
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
+      bottomNavigationBar: SafeArea(
+        child: Container(
+        padding: const EdgeInsets.all(2),
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: AppColors.background,
           border: Border(
             top: BorderSide(color: Color(0xFFEAEAEA)),
           ),
         ),
-        child: Row(
-          children: [
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () {
-             _callSeller(product.sellerPhone);
-                },
-                icon: const Icon(Icons.call),
-                label: const Text('Call'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [ 
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () {
+                      // Firebase chat later
+                    },
+                    icon: const Icon(Icons.message),
+                    label: const Text('Message'),
                   ),
                 ),
-              ),
-            ),
-
-            const SizedBox(width: 12),
-
-            Expanded(
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  _messageSeller(product.sellerPhone);
-                },
-                icon: const Icon(Icons.message),
-                label: const Text('Message'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.buySell,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+          
+                const SizedBox(width: 12),
+          
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed:(){ 
+                      _callSeller(product.sellerPhone);
+                    },
+                    icon: const Icon(Icons.call),
+                    label: const Text('Call'),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
       

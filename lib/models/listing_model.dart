@@ -6,6 +6,8 @@ class ListingModel {
   final String description;
   final String location;
   final String category;
+  final String condition;
+  final List<String> images;
 
   ListingModel({
     required this.id,
@@ -15,5 +17,7 @@ class ListingModel {
     required this.description,
     required this.location,
     required this.category,
+    required this.condition,
+    required this.images,
   });
 }
