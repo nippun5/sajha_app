@@ -18,41 +18,51 @@ class BusinessCheckoutApi {
   }
 
   Future<Map<String, String>> _headers() async => {
-    'Authorization': 'Bearer ${await accessToken()}',
-    'Accept': 'application/json',
-  };
+        'Authorization': 'Bearer ${await accessToken()}',
+        'Accept': 'application/json',
+      };
 
   Map<String, dynamic> _decode(http.Response response) {
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw StateError('Request failed (${response.statusCode}). Please try again.');
+      throw StateError(
+          'Request failed (${response.statusCode}). Please try again.');
     }
     return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
   Future<Map<String, dynamic>> createDraft(
-    Map<String, dynamic> business, XFile banner, String requestId,
+    Map<String, dynamic> business,
+    XFile banner,
+    String requestId,
   ) async {
     final request = http.MultipartRequest('POST', _url('business/drafts'));
     request.headers.addAll(await _headers());
     request.headers['Idempotency-Key'] = requestId;
     request.fields['business'] = jsonEncode(business);
     request.files.add(http.MultipartFile.fromBytes(
-      'banner', await banner.readAsBytes(), filename: banner.name,
+      'banner',
+      await banner.readAsBytes(),
+      filename: banner.name,
     ));
     final response = await request.send().timeout(const Duration(seconds: 45));
     return _decode(await http.Response.fromStream(response));
   }
 
   Future<Map<String, dynamic>> status(String draftId) async => _decode(
-    await http.get(_url('business/drafts/${Uri.encodeComponent(draftId)}'),
-      headers: await _headers()).timeout(const Duration(seconds: 25)),
-  );
+        await http
+            .get(_url('business/drafts/${Uri.encodeComponent(draftId)}'),
+                headers: await _headers())
+            .timeout(const Duration(seconds: 25)),
+      );
 
   Future<Uri> checkout(String draftId, String method) async {
-    final result = _decode(await http.post(_url('business/checkout'),
-      headers: {...await _headers(), 'Content-Type': 'application/json'},
-      body: jsonEncode({'draftId': draftId, 'method': method}),
-    ).timeout(const Duration(seconds: 25)));
+    final result = _decode(await http
+        .post(
+          _url('business/checkout'),
+          headers: {...await _headers(), 'Content-Type': 'application/json'},
+          body: jsonEncode({'draftId': draftId, 'method': method}),
+        )
+        .timeout(const Duration(seconds: 25)));
     final uri = Uri.parse(result['checkoutUrl'] as String);
     if (uri.scheme != 'https' || uri.host.isEmpty || uri.userInfo.isNotEmpty) {
       throw StateError('Invalid checkout address.');
@@ -105,6 +115,7 @@ class DummyBusinessCheckoutApi extends BusinessCheckoutApi {
   Future<Uri> checkout(String draftId, String method) async {
     await Future.delayed(const Duration(milliseconds: 500));
     _checkoutStarted = true;
-    return Uri.parse('https://example.com/demo-checkout?draftId=$draftId&method=$method');
+    return Uri.parse(
+        'https://example.com/demo-checkout?draftId=$draftId&method=$method');
   }
 }

@@ -275,9 +275,8 @@ class _PostRentRoomScreenState extends State<PostRentRoomScreen> {
                 labelText: 'Suburb *',
                 border: OutlineInputBorder(),
               ),
-              validator: (v) => (v == null || v.trim().isEmpty)
-                  ? 'Suburb is required'
-                  : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Suburb is required' : null,
             ),
             const SizedBox(height: 15),
 
@@ -559,9 +558,8 @@ class _PostRentRoomScreenState extends State<PostRentRoomScreen> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.person_outline),
               ),
-              validator: (v) => (v == null || v.trim().isEmpty)
-                  ? 'Name is required'
-                  : null,
+              validator: (v) =>
+                  (v == null || v.trim().isEmpty) ? 'Name is required' : null,
             ),
             const SizedBox(height: 15),
 
@@ -618,8 +616,7 @@ class _PostRentRoomScreenState extends State<PostRentRoomScreen> {
                       child: Wrap(
                         spacing: 12,
                         children: [
-                          if (isFurnished)
-                            const Chip(label: Text('Furnished')),
+                          if (isFurnished) const Chip(label: Text('Furnished')),
                           if (billsIncluded)
                             const Chip(label: Text('Bills Included')),
                         ],

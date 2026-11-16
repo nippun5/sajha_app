@@ -20,37 +20,44 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-late final PageController _pageCtrl;
-late int _currentTab;
+  late final PageController _pageCtrl;
+  late int _currentTab;
 
-@override
-void initState() {
-  super.initState();
+  @override
+  void initState() {
+    super.initState();
 
-  _currentTab = widget.categoryIndex.value;
-  _pageCtrl = PageController(initialPage: _currentTab);
+    _currentTab = widget.categoryIndex.value;
+    _pageCtrl = PageController(initialPage: _currentTab);
 
-  widget.categoryIndex.addListener(_handleCategoryChange);
-}
-
-void _handleCategoryChange() {
-  if (!mounted) return;
-
-  final index = widget.categoryIndex.value;
-
-  if (index == _currentTab) return;
-
-  setState(() => _currentTab = index);
-
-  if (_pageCtrl.hasClients) {
-    _pageCtrl.jumpToPage(index);
+    widget.categoryIndex.addListener(_handleCategoryChange);
   }
-}
+
+  void _handleCategoryChange() {
+    if (!mounted) return;
+
+    final index = widget.categoryIndex.value;
+
+    if (index == _currentTab) return;
+
+    setState(() => _currentTab = index);
+
+    if (_pageCtrl.hasClients) {
+      _pageCtrl.jumpToPage(index);
+    }
+  }
 
   static const _tabs = [
-    _TabMeta(label: 'Buy & Sell',  icon: Icons.sell_outlined,  color: AppColors.buySell),
-    _TabMeta(label: 'Rent Room',   icon: Icons.home_outlined,  color: AppColors.rentRoom),
-    _TabMeta(label: 'Jobs',        icon: Icons.work_outline,   color: AppColors.jobSearch),
+    _TabMeta(
+        label: 'Buy & Sell',
+        icon: Icons.sell_outlined,
+        color: AppColors.buySell),
+    _TabMeta(
+        label: 'Rent Room',
+        icon: Icons.home_outlined,
+        color: AppColors.rentRoom),
+    _TabMeta(
+        label: 'Jobs', icon: Icons.work_outline, color: AppColors.jobSearch),
   ];
 
   void _switchTab(int index) {
@@ -63,12 +70,12 @@ void _handleCategoryChange() {
     );
   }
 
-@override
-void dispose() {
-  widget.categoryIndex.removeListener(_handleCategoryChange);
-  _pageCtrl.dispose();
-  super.dispose();
-}
+  @override
+  void dispose() {
+    widget.categoryIndex.removeListener(_handleCategoryChange);
+    _pageCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,12 +96,12 @@ void dispose() {
             child: PageView(
               controller: _pageCtrl,
               onPageChanged: (i) {
-                  setState(() => _currentTab = i);
+                setState(() => _currentTab = i);
 
-                  if (widget.categoryIndex.value != i) {
-                    widget.categoryIndex.value = i;
-                  }
-                },
+                if (widget.categoryIndex.value != i) {
+                  widget.categoryIndex.value = i;
+                }
+              },
               children: const [
                 BuySellPage(),
                 RentRoomPage(),
@@ -136,7 +143,7 @@ void dispose() {
         Padding(
           padding: const EdgeInsets.only(right: 12),
           child: GestureDetector(
-          onTap: widget.onProfileSelected,
+            onTap: widget.onProfileSelected,
             child: const CircleAvatar(
               radius: 15,
               backgroundColor: AppColors.border,
@@ -159,7 +166,8 @@ class _TabMeta {
   final String label;
   final IconData icon;
   final Color color;
-  const _TabMeta({required this.label, required this.icon, required this.color});
+  const _TabMeta(
+      {required this.label, required this.icon, required this.color});
 }
 
 class _TabBar extends StatelessWidget {
@@ -191,14 +199,12 @@ class _TabBar extends StatelessWidget {
                 margin: EdgeInsets.only(right: i < tabs.length - 1 ? 8 : 0),
                 padding: const EdgeInsets.symmetric(vertical: 9),
                 decoration: BoxDecoration(
-                  color: active
-                      ? tab.color.withOpacity(0.1)
-                      : Colors.transparent,
+                  color:
+                      active ? tab.color.withOpacity(0.1) : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: active
-                        ? tab.color.withOpacity(0.5)
-                        : AppColors.border,
+                    color:
+                        active ? tab.color.withOpacity(0.5) : AppColors.border,
                     width: active ? 1.5 : 1,
                   ),
                 ),
@@ -215,8 +221,7 @@ class _TabBar extends StatelessWidget {
                       tab.label,
                       style: TextStyle(
                         fontSize: 11,
-                        fontWeight:
-                            active ? FontWeight.w600 : FontWeight.w400,
+                        fontWeight: active ? FontWeight.w600 : FontWeight.w400,
                         color: active ? tab.color : AppColors.textHint,
                       ),
                     ),

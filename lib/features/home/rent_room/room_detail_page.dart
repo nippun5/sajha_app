@@ -38,7 +38,7 @@ class RoomDetailPage extends StatelessWidget {
                         ),
                       ),
               ),
-        
+
               Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -51,9 +51,7 @@ class RoomDetailPage extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-        
                     const SizedBox(height: 8),
-        
                     Text(
                       '\$${room.weeklyRent.toStringAsFixed(0)} / week',
                       style: const TextStyle(
@@ -62,9 +60,7 @@ class RoomDetailPage extends StatelessWidget {
                         color: AppColors.rentRoom,
                       ),
                     ),
-        
                     const SizedBox(height: 12),
-        
                     Row(
                       children: [
                         const Icon(Icons.location_on_outlined),
@@ -74,9 +70,7 @@ class RoomDetailPage extends StatelessWidget {
                         ),
                       ],
                     ),
-        
                     const SizedBox(height: 20),
-        
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
@@ -90,14 +84,11 @@ class RoomDetailPage extends StatelessWidget {
                         ),
                         _FeatureItem(
                           icon: Icons.weekend_outlined,
-                          label:
-                              room.furnished ? 'Furnished' : 'Unfurnished',
+                          label: room.furnished ? 'Furnished' : 'Unfurnished',
                         ),
                       ],
                     ),
-        
                     const SizedBox(height: 24),
-        
                     const Text(
                       'Description',
                       style: TextStyle(
@@ -105,13 +96,9 @@ class RoomDetailPage extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-        
                     const SizedBox(height: 8),
-        
                     Text(room.description),
-        
                     const SizedBox(height: 24),
-        
                     const Text(
                       'Amenities',
                       style: TextStyle(
@@ -119,9 +106,7 @@ class RoomDetailPage extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-        
                     const SizedBox(height: 10),
-        
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
@@ -131,9 +116,7 @@ class RoomDetailPage extends StatelessWidget {
                           )
                           .toList(),
                     ),
-        
                     const SizedBox(height: 24),
-        
                     const Text(
                       'Owner Information',
                       style: TextStyle(
@@ -141,9 +124,7 @@ class RoomDetailPage extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-        
                     const SizedBox(height: 12),
-        
                     ListTile(
                       leading: const CircleAvatar(
                         child: Icon(Icons.person),
@@ -151,9 +132,7 @@ class RoomDetailPage extends StatelessWidget {
                       title: Text(room.ownerName),
                       subtitle: Text(room.ownerPhone),
                     ),
-        
                     const SizedBox(height: 20),
-        
                     SizedBox(
                       width: double.infinity,
                       height: 52,

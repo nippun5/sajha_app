@@ -26,20 +26,18 @@ class JobDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-
       appBar: AppBar(
         title: const Text('Job Details'),
       ),
-
-       bottomNavigationBar: SafeArea(
+      bottomNavigationBar: SafeArea(
         child: Container(
-        padding: const EdgeInsets.all(2),
-        decoration: const BoxDecoration(
-          color: AppColors.background,
-          border: Border(
-            top: BorderSide(color: Color(0xFFEAEAEA)),
+          padding: const EdgeInsets.all(2),
+          decoration: const BoxDecoration(
+            color: AppColors.background,
+            border: Border(
+              top: BorderSide(color: Color(0xFFEAEAEA)),
+            ),
           ),
-        ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
@@ -53,12 +51,10 @@ class JobDetailPage extends StatelessWidget {
                     label: const Text('Message'),
                   ),
                 ),
-          
                 const SizedBox(width: 12),
-          
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed:(){ 
+                    onPressed: () {
                       _callEmployer();
                     },
                     icon: const Icon(Icons.call),
@@ -70,11 +66,9 @@ class JobDetailPage extends StatelessWidget {
           ),
         ),
       ),
-
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16),
-
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -85,7 +79,6 @@ class JobDetailPage extends StatelessWidget {
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(12),
                 ),
-
                 child: Row(
                   children: [
                     CircleAvatar(
@@ -97,13 +90,10 @@ class JobDetailPage extends StatelessWidget {
                         ),
                       ),
                     ),
-
                     const SizedBox(width: 12),
-
                     Expanded(
                       child: Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             job.company,
@@ -112,7 +102,6 @@ class JobDetailPage extends StatelessWidget {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-
                           Text(
                             job.location,
                             style: const TextStyle(
@@ -163,9 +152,7 @@ class JobDetailPage extends StatelessWidget {
                   const Icon(Icons.home_work),
                   const SizedBox(width: 8),
                   Text(
-                    job.isRemote
-                        ? 'Remote Available'
-                        : 'On-site',
+                    job.isRemote ? 'Remote Available' : 'On-site',
                   ),
                 ],
               ),
@@ -198,8 +185,7 @@ class JobDetailPage extends StatelessWidget {
 
               ...job.requirements.map(
                 (req) => Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 4),
+                  padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(
                     children: [
                       const Icon(
