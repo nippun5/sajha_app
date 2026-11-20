@@ -23,6 +23,9 @@ class BusinessModel {
   final bool onlineOnly;
   final String? locationNote;
 
+  /// Optional verified owner ID, to be set by the backend later.
+  final String? ownerId;
+
   BusinessModel({
     required this.id,
     required this.name,
@@ -43,9 +46,14 @@ class BusinessModel {
     this.countryCode,
     this.onlineOnly = false,
     this.locationNote,
+    this.ownerId,
   });
 
-  bool get hasCoordinates => latitude != null && longitude != null &&
-      latitude! >= -90 && latitude! <= 90 &&
-      longitude! >= -180 && longitude! <= 180;
+  bool get hasCoordinates =>
+      latitude != null &&
+      longitude != null &&
+      latitude! >= -90 &&
+      latitude! <= 90 &&
+      longitude! >= -180 &&
+      longitude! <= 180;
 }

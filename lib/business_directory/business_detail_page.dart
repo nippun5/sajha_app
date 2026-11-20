@@ -8,6 +8,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../core/theme/app_colors.dart';
 import '../features/business_location/business_location_service.dart';
 import '../models/business_model.dart';
+import '../features/business_reviews/data/business_review_store.dart';
+import '../features/business_reviews/widgets/business_reviews_section.dart';
 
 class BusinessDetailPage extends StatelessWidget {
   const BusinessDetailPage({super.key, required this.business});
@@ -109,11 +111,20 @@ class BusinessDetailPage extends StatelessWidget {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Chip(label: Text(business.category)),
-                    Row(mainAxisSize: MainAxisSize.min, children: [
-                      const Icon(Icons.star_rounded, color: AppColors.warning),
-                      Text(' ${business.rating.toStringAsFixed(1)}  '
-                          '(${business.reviewCount} reviews)'),
-                    ]),
+                    AnimatedBuilder(
+                      animation: BusinessReviewStore.instance,
+                      builder: (context, _) {
+                        final summary =
+                            BusinessReviewStore.instance.summaryFor(business);
+                        return Row(mainAxisSize: MainAxisSize.min, children: [
+                          const Icon(Icons.star_rounded,
+                              color: AppColors.warning),
+                          Text(
+                              ' ${summary.count == 0 ? 'Unrated' : summary.average.toStringAsFixed(1)}  '
+                              '(${summary.count} reviews)'),
+                        ]);
+                      },
+                    ),
                   ]),
               const SizedBox(height: 12),
               Text(business.description, style: const TextStyle(height: 1.5)),
@@ -246,16 +257,7 @@ class BusinessDetailPage extends StatelessWidget {
                                 .toList()))),
               ],
               const SizedBox(height: 22),
-              const Text('Reviews',
-                  style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary)),
-              const SizedBox(height: 6),
-              const Text(
-                  'Ratings are display-only for now. Writing, editing and '
-                  'reporting reviews will be added in Step 6C.',
-                  style: TextStyle(color: AppColors.textSecondary)),
+              BusinessReviewsSection(business: business),
               const SizedBox(height: 36),
             ])),
       ]),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/app_colors.dart';
 import '../models/business_model.dart';
+import '../features/business_reviews/data/business_review_store.dart';
 import '../shared/data/dummy_data.dart';
 import 'business_detail_page.dart';
 
@@ -22,7 +23,18 @@ class _BusinessDirectoryScreenState extends State<BusinessDirectoryScreen> {
   String _sort = 'Name A–Z';
 
   @override
+  void initState() {
+    super.initState();
+    BusinessReviewStore.instance.addListener(_onReviewsChanged);
+  }
+
+  void _onReviewsChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   void dispose() {
+    BusinessReviewStore.instance.removeListener(_onReviewsChanged);
     _search.dispose();
     super.dispose();
   }
@@ -37,9 +49,15 @@ class _BusinessDirectoryScreenState extends State<BusinessDirectoryScreen> {
       return categoryMatch && (q.isEmpty || searchable.contains(q));
     }).toList();
     if (_sort == 'Top rated') {
-      matches.sort((a, b) => b.rating.compareTo(a.rating));
+      matches.sort((a, b) => BusinessReviewStore.instance
+          .summaryFor(b)
+          .average
+          .compareTo(BusinessReviewStore.instance.summaryFor(a).average));
     } else if (_sort == 'Most reviewed') {
-      matches.sort((a, b) => b.reviewCount.compareTo(a.reviewCount));
+      matches.sort((a, b) => BusinessReviewStore.instance
+          .summaryFor(b)
+          .count
+          .compareTo(BusinessReviewStore.instance.summaryFor(a).count));
     } else {
       matches
           .sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
@@ -232,8 +250,13 @@ class _BusinessCard extends StatelessWidget {
                       const SizedBox(width: 12),
                       const Icon(Icons.star_rounded,
                           size: 18, color: AppColors.warning),
-                      Text(' ${business.rating.toStringAsFixed(1)}'
-                          ' (${business.reviewCount})'),
+                      Builder(builder: (context) {
+                        final summary =
+                            BusinessReviewStore.instance.summaryFor(business);
+                        return Text(
+                            ' ${summary.count == 0 ? 'Unrated' : summary.average.toStringAsFixed(1)}'
+                            ' (${summary.count})');
+                      }),
                     ]),
                     const SizedBox(height: 6),
                     Text(business.description,
