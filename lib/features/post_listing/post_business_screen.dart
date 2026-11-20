@@ -1,14 +1,15 @@
-import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:image_picker/image_picker.dart';
-import 'business_checkout_api.dart';
-import 'business_payment_screen.dart';
+import '../business_location/business_address_field.dart';
+import '../business_location/business_location_picker.dart';
+import '../business_location/business_location_service.dart';
+import '../profile/data/profile_demo_store.dart';
+import '../../core/theme/app_colors.dart';
 
-const _navy = Color(0xFF14283F);
-const _gold = Color(0xFFE7C477);
+const _navy = AppColors.primary;
+const _gold = AppColors.coral;
 const _days = [
   'Monday',
   'Tuesday',
@@ -58,20 +59,15 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
   final _about = TextEditingController();
   final _hours = List.generate(7, (_) => _Hours());
   final _picker = ImagePicker();
-  final _requestId = List.generate(24,
-          (_) => Random.secure().nextInt(256).toRadixString(16).padLeft(2, '0'))
-      .join();
   String? _category;
   XFile? _banner;
   Uint8List? _bytes;
-  LatLng? _location;
+  BusinessLocation? _location;
   bool _online = false;
   bool _busy = false;
   bool _picking = false;
   bool _submitted = false;
-  String? _draftId;
   String? _error;
-  bool _published = false;
 
   @override
   void initState() {
@@ -133,12 +129,19 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
     }
   }
 
+  // Geoapify place search and map confirmation share the same location model.
   Future<void> _pickLocation() async {
-    final location = await Navigator.push<LatLng>(
-        context,
-        MaterialPageRoute(
-            builder: (_) => _BusinessMapPicker(initial: _location)));
-    if (mounted && location != null) setState(() => _location = location);
+    final picked = await Navigator.push<BusinessLocation>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BusinessLocationPicker(initial: _location),
+      ),
+    );
+    if (!mounted || picked == null) return;
+    setState(() {
+      _location = picked;
+      _address.text = picked.formattedAddress;
+    });
   }
 
   String? _required(String? value) =>
@@ -148,83 +151,77 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
     return value.isEmpty || value.contains('://') ? value : 'https://$value';
   }
 
+  // Frontend preview only. Never publish a business or simulate payment.
   Future<void> _continue() async {
+    if (_busy) return;
     FocusScope.of(context).unfocus();
     setState(() {
       _submitted = true;
       _error = null;
     });
+
     final valid = _form.currentState!.validate();
     if (!valid ||
         _banner == null ||
         (!_online && _location == null) ||
         _hours.any((h) => h.mode == 'open' && h.startMinutes == h.endMinutes)) {
       setState(() => _error =
-          'Check the required fields, banner, map location and opening hours.');
+          'Check the required fields, banner, location and opening hours.');
       return;
     }
-    // final api = BusinessCheckoutApi.instance;
-    final api = BusinessCheckoutApi.instance ?? DummyBusinessCheckoutApi();
-    // if (api == null) {
-    //   setState(() => _error = 'Business payments are not available yet. Please try again later.');
-    //   return;
-    // }
-    setState(() => _busy = true);
-    try {
-      if (_draftId == null) {
-        final draft = await api.createDraft({
-          'name': _name.text.trim(),
-          'category': _category == 'Other' ? _custom.text.trim() : _category,
-          'onlineOnly': _online,
-          'address': _online ? '' : _address.text.trim(),
-          'latitude': _online ? null : _location?.latitude,
-          'longitude': _online ? null : _location?.longitude,
-          'phone': _phone.text.trim(),
-          'website': _normalizedWebsite(),
-          'description': _about.text.trim(),
-          'openingHours': {
-            for (var i = 0; i < 7; i++) _days[i]: _hours[i].display
-          },
-          'openingHoursStructured': {
-            for (var i = 0; i < 7; i++) _days[i]: _hours[i].toJson()
-          },
-        }, _banner!, _requestId);
-        _draftId = draft['draftId'] as String;
-      }
-      if (!mounted) return;
-      final result = await Navigator.push<bool>(
-          context,
-          MaterialPageRoute(
-              builder: (_) => BusinessPaymentScreen(
-                  api: api,
-                  draftId: _draftId!,
-                  businessName: _name.text.trim())));
-      if (!mounted) return;
-      if (result == true) {
-        _published = true;
-        await showDialog<void>(
-            context: context,
-            barrierDismissible: false,
-            builder: (dialogContext) => AlertDialog(
-                    icon: const Icon(Icons.check_circle,
-                        color: Colors.green, size: 48),
-                    title: const Text('Your business is live!'),
-                    content: const Text(
-                        'Your Pro listing is now in the Business Directory.'),
-                    actions: [
-                      TextButton(
-                          onPressed: () => Navigator.pop(dialogContext),
-                          child: const Text('Done'))
-                    ]));
-        if (mounted) Navigator.pop(context, true);
-      }
-    } catch (_) {
-      if (mounted)
-        setState(() => _error =
-            'Could not save your listing. Check your connection and retry.');
-    } finally {
-      if (mounted) setState(() => _busy = false);
+
+    final demoStore = ProfileDemoStore.instance;
+    if (!demoStore.previewEnabled) {
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Business requests are not connected yet'),
+          content: const Text(
+            'This is a frontend preview. Enable Profile demo mode to test '
+            'a Pending request locally. No request can be sent to an '
+            'administrator until the backend is connected.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      return;
     }
+
+    setState(() => _busy = true);
+    // The existing demo store records summary fields only. The full form,
+    // banner, confirmed coordinates and opening hours will be included in
+    // the real backend request model in Step 6B.
+    demoStore.addBusinessRequest(
+      businessName: _name.text.trim(),
+      category: _category == 'Other' ? _custom.text.trim() : (_category ?? ''),
+      location: _online ? 'Online only' : _address.text.trim(),
+    );
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.pending_actions, color: AppColors.primary),
+        title: const Text('Request saved in demo mode'),
+        content: const Text(
+          'Your business request is Pending in your local Profile preview. '
+          'It has NOT been sent to an admin, no payment has been processed, '
+          'and the business is not published.',
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('View later in Profile'),
+          ),
+        ],
+      ),
+    );
+    if (mounted) Navigator.pop(context, true);
   }
 
   Widget _section(String number, String title, String subtitle,
@@ -323,7 +320,7 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final locked = _busy || _draftId != null;
+    final locked = _busy;
     return Theme(
       data: ThemeData(
           useMaterial3: true,
@@ -366,22 +363,17 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
                                   height: 1.15)),
                           SizedBox(height: 14),
                           Text(
-                              'Introduce your business to the Sajha community.\n'
-                              'Build your profile, then choose how to pay.',
+                              'Introduce your business to the SaJHa community.\n'
+                              'Our team will review your request.',
                               style: TextStyle(
                                   color: Color(0xFFD9E2EC), height: 1.6)),
                           SizedBox(height: 20),
-                          Text('01  BUSINESS PROFILE     /     02  PAYMENT',
+                          Text('01  BUSINESS PROFILE     /     02  REVIEW',
                               style: TextStyle(
                                   color: _gold,
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold)),
                         ])),
-                if (_draftId != null)
-                  const Padding(
-                      padding: EdgeInsets.only(bottom: 16),
-                      child: Text(
-                          'Your profile is saved for checkout. Continue below to resume payment.')),
                 AbsorbPointer(
                     absorbing: locked,
                     child: Column(children: [
@@ -477,9 +469,16 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
                                 onChanged: (value) =>
                                     setState(() => _online = value)),
                             if (!_online) ...[
-                              _field(
-                                  _address, 'Street address / location label',
-                                  required: true, maxLength: 250),
+                              BusinessAddressField(
+                                controller: _address,
+                                onSelected: (place) => setState(() {
+                                  _location = place;
+                                }),
+                                onChangedByUser: () => setState(() {
+                                  // Never keep a pin from an earlier address.
+                                  _location = null;
+                                }),
+                              ),
                               OutlinedButton.icon(
                                   onPressed: _pickLocation,
                                   icon: const Icon(Icons.map_outlined),
@@ -545,20 +544,20 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
                           style: const TextStyle(color: Colors.red))),
                 FilledButton.icon(
                     onPressed:
-                        _busy || _picking || _published ? null : _continue,
+                        kDebugMode && !_busy && !_picking ? _continue : null,
                     style: FilledButton.styleFrom(
                         backgroundColor: _navy,
                         padding: const EdgeInsets.all(20)),
                     icon: const Icon(Icons.arrow_forward),
                     label: Text(_busy
-                        ? 'Please wait…'
-                        : _draftId == null
-                            ? 'Continue to payment'
-                            : 'Resume payment')),
+                        ? 'Saving…'
+                        : kDebugMode
+                            ? 'Submit business request (preview)'
+                            : 'Submission unavailable')),
                 const SizedBox(height: 12),
                 const Text(
-                    'Pro is a paid listing. Review the price before paying.\n'
-                    'Your business will not be published until payment is confirmed.',
+                    'Submitting this form creates a local Pending preview only.\n'
+                    'No payment or publication happens in the app.',
                     textAlign: TextAlign.center),
                 const SizedBox(height: 24),
               ])),
@@ -566,59 +565,4 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
       ),
     );
   }
-}
-
-class _BusinessMapPicker extends StatefulWidget {
-  const _BusinessMapPicker({this.initial});
-  final LatLng? initial;
-  @override
-  State<_BusinessMapPicker> createState() => _BusinessMapPickerState();
-}
-
-class _BusinessMapPickerState extends State<_BusinessMapPicker> {
-  LatLng? _pin;
-  @override
-  void initState() {
-    super.initState();
-    _pin = widget.initial;
-  }
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('Pin your business')),
-        body: Column(children: [
-          const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                  'Zoom to your business and tap the map. Drag the pin to fine-tune.')),
-          Expanded(
-              child: GoogleMap(
-            initialCameraPosition: CameraPosition(
-                target: _pin ?? const LatLng(39.5, -98.35),
-                zoom: _pin == null ? 3 : 17),
-            onTap: (point) => setState(() => _pin = point),
-            markers: {
-              if (_pin != null)
-                Marker(
-                    markerId: const MarkerId('business'),
-                    position: _pin!,
-                    draggable: true,
-                    onDragEnd: (point) => setState(() => _pin = point))
-            },
-            myLocationButtonEnabled: false,
-            mapToolbarEnabled: false,
-          )),
-          SafeArea(
-              top: false,
-              child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                          onPressed: _pin == null
-                              ? null
-                              : () => Navigator.pop(context, _pin),
-                          child: const Text('Use this location'))))),
-        ]),
-      );
 }

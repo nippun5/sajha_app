@@ -45,11 +45,7 @@ class BusinessModel {
     this.locationNote,
   });
 
-  bool get hasCoordinates =>
-      latitude != null &&
-      longitude != null &&
-      latitude! >= -90 &&
-      latitude! <= 90 &&
-      longitude! >= -180 &&
-      longitude! <= 180;
+  bool get hasCoordinates => latitude != null && longitude != null &&
+      latitude! >= -90 && latitude! <= 90 &&
+      longitude! >= -180 && longitude! <= 180;
 }
