@@ -1,4 +1,6 @@
+import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
+import '../../business_requests/data/business_submission.dart';
 
 enum ListingType { buySell, room, job }
 
@@ -95,6 +97,9 @@ class BusinessRequestPreview {
     required this.createdAt,
     required this.status,
     this.declineReason,
+    this.submission,
+    this.revision = 1,
+    this.lastSubmittedAt,
   });
 
   final String id;
@@ -104,6 +109,12 @@ class BusinessRequestPreview {
   final DateTime createdAt;
   final BusinessRequestStatus status;
   final String? declineReason;
+
+  /// Full form snapshot, available for new Step 6B requests. Legacy seeded
+  /// examples may be summary-only, so UI must handle null gracefully.
+  final BusinessSubmission? submission;
+  final int revision;
+  final DateTime? lastSubmittedAt;
 }
 
 /// A deliberately IN-MEMORY, DEBUG-ONLY demo data source.
@@ -234,13 +245,51 @@ class ProfileDemoStore extends ChangeNotifier {
           status: BusinessRequestStatus.approved,
         ),
         BusinessRequestPreview(
-          id: _newId('business'),
-          businessName: 'Demo Repairs',
-          category: 'Home services',
-          location: 'Demo Suburb',
+          id: _newId('business'), businessName: 'Demo Repairs',
+          category: 'Home services', location: 'Online only',
           createdAt: now.subtract(const Duration(days: 30)),
           status: BusinessRequestStatus.declined,
           declineReason: 'Example: More business details are required.',
+          // Fully editable example for the Step 6B correction test. A new
+          // banner must be picked before resubmitting this sample.
+          submission: BusinessSubmission(
+            name: 'Demo Repairs',
+            category: 'Home services',
+            phone: '+15550100123',
+            description: 'Sample repair service. Please update these details.',
+            onlineOnly: true,
+            address: '',
+            bannerBytes: Uint8List(0),
+            openingHours: {
+              for (final day in const [
+                'Monday',
+                'Tuesday',
+                'Wednesday',
+                'Thursday',
+                'Friday',
+                'Saturday',
+                'Sunday',
+              ])
+                day: '09:00 – 17:00',
+            },
+            openingHoursStructured: {
+              for (final day in const [
+                'Monday',
+                'Tuesday',
+                'Wednesday',
+                'Thursday',
+                'Friday',
+                'Saturday',
+                'Sunday',
+              ])
+                day: {
+                  'mode': 'open',
+                  'opens': '09:00',
+                  'closes': '17:00',
+                  'closesNextDay': false,
+                },
+            },
+          ),
         ),
       ]);
     notifyListeners();
@@ -333,6 +382,62 @@ class ProfileDemoStore extends ChangeNotifier {
           status: BusinessRequestStatus.pending,
         ));
     notifyListeners();
+  }
+
+  /// Saves a COMPLETE request only in local debug preview. This never calls
+  /// an administrator, charges a customer, or publishes a business.
+  BusinessRequestPreview submitBusinessRequest(BusinessSubmission submission) {
+    if (!previewEnabled) {
+      throw StateError('Enable Profile demo mode to test submissions.');
+    }
+    final error = submission.validate();
+    if (error != null) throw ArgumentError(error);
+    final now = DateTime.now();
+    final request = BusinessRequestPreview(
+      id: _newId('business'),
+      businessName: submission.name.trim(),
+      category: submission.category.trim(),
+      location: submission.locationLabel,
+      createdAt: now,
+      lastSubmittedAt: now,
+      status: BusinessRequestStatus.pending,
+      submission: submission,
+    );
+    _requests.insert(0, request);
+    notifyListeners();
+    return request;
+  }
+
+  /// Owner correction flow: only a DECLINED request can be resubmitted.
+  /// Status moves back to Pending; admin statuses are never set by consumers.
+  BusinessRequestPreview resubmitDeclinedBusinessRequest(
+    String id,
+    BusinessSubmission corrected,
+  ) {
+    if (!previewEnabled) throw StateError('Demo mode is disabled.');
+    final error = corrected.validate();
+    if (error != null) throw ArgumentError(error);
+    final index = _requests.indexWhere((request) => request.id == id);
+    if (index < 0) throw StateError('Request not found.');
+    final existing = _requests[index];
+    if (existing.status != BusinessRequestStatus.declined) {
+      throw StateError('Only declined requests can be corrected.');
+    }
+    final result = BusinessRequestPreview(
+      id: existing.id,
+      businessName: corrected.name.trim(),
+      category: corrected.category.trim(),
+      location: corrected.locationLabel,
+      createdAt: existing.createdAt,
+      lastSubmittedAt: DateTime.now(),
+      status: BusinessRequestStatus.pending,
+      submission: corrected,
+      revision: existing.revision + 1,
+    );
+    _requests.removeAt(index);
+    _requests.insert(0, result);
+    notifyListeners();
+    return result;
   }
 
   void updateDemoPreferences({

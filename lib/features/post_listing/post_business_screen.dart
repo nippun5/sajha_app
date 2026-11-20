@@ -6,6 +6,7 @@ import '../business_location/business_address_field.dart';
 import '../business_location/business_location_picker.dart';
 import '../business_location/business_location_service.dart';
 import '../profile/data/profile_demo_store.dart';
+import '../business_requests/data/business_submission.dart';
 import '../../core/theme/app_colors.dart';
 
 const _navy = AppColors.primary;
@@ -44,7 +45,10 @@ class _Hours {
 }
 
 class PostBusinessScreen extends StatefulWidget {
-  const PostBusinessScreen({super.key});
+  const PostBusinessScreen({super.key, this.initialRequest});
+
+  /// Passed only for correcting an existing Declined business request.
+  final BusinessRequestPreview? initialRequest;
   @override
   State<PostBusinessScreen> createState() => _PostBusinessScreenState();
 }
@@ -60,20 +64,86 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
   final _hours = List.generate(7, (_) => _Hours());
   final _picker = ImagePicker();
   String? _category;
-  XFile? _banner;
   Uint8List? _bytes;
   BusinessLocation? _location;
   bool _online = false;
   bool _busy = false;
   bool _picking = false;
   bool _submitted = false;
+  bool _contactConsent = false;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android)
+    _prefillDeclinedRequest();
+    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       _recoverImage();
+    }
+  }
+
+  void _prefillDeclinedRequest() {
+    final request = widget.initialRequest;
+    if (request == null || request.status != BusinessRequestStatus.declined) {
+      return;
+    }
+    final data = request.submission;
+    if (data == null) return; // Legacy example without the full form.
+    _name.text = data.name;
+    const categories = [
+      'Restaurant & cafe',
+      'Grocery & retail',
+      'Beauty & wellness',
+      'Home services',
+      'Professional services',
+      'Education',
+      'Travel & transport',
+      'Technology',
+    ];
+    _category = categories.contains(data.category) ? data.category : 'Other';
+    if (_category == 'Other') _custom.text = data.category;
+    _address.text = data.address;
+    _phone.text = data.phone;
+    _website.text = data.website;
+    _about.text = data.description;
+    _online = data.onlineOnly;
+    if (!data.onlineOnly && data.latitude != null && data.longitude != null) {
+      _location = BusinessLocation(
+        formattedAddress: data.address,
+        latitude: data.latitude!,
+        longitude: data.longitude!,
+        placeId: data.placeId,
+        city: data.city,
+        state: data.state,
+        countryCode: data.countryCode,
+      );
+    }
+    if (data.bannerBytes.isNotEmpty) {
+      _bytes = Uint8List.fromList(data.bannerBytes);
+    }
+    for (var i = 0; i < _days.length; i++) {
+      final saved = data.openingHoursStructured[_days[i]];
+      if (saved == null) continue;
+      final mode = saved['mode'];
+      if (mode == 'closed' || mode == 'allDay' || mode == 'open') {
+        _hours[i].mode = mode as String;
+      }
+      _hours[i].start = _parseTime(saved['opens'], _hours[i].start);
+      _hours[i].end = _parseTime(saved['closes'], _hours[i].end);
+    }
+  }
+
+  TimeOfDay _parseTime(dynamic text, TimeOfDay fallback) {
+    if (text is! String || !RegExp(r'^\d{2}:\d{2}$').hasMatch(text)) {
+      return fallback;
+    }
+    final pieces = text.split(':');
+    final hour = int.tryParse(pieces[0]);
+    final minute = int.tryParse(pieces[1]);
+    if (hour == null || minute == null || hour > 23 || minute > 59) {
+      return fallback;
+    }
+    return TimeOfDay(hour: hour, minute: minute);
   }
 
   Future<void> _recoverImage() async {
@@ -108,7 +178,6 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
     final bytes = await image.readAsBytes();
     if (mounted)
       setState(() {
-        _banner = image;
         _bytes = bytes;
         _error = null;
       });
@@ -151,7 +220,8 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
     return value.isEmpty || value.contains('://') ? value : 'https://$value';
   }
 
-  // Frontend preview only. Never publish a business or simulate payment.
+  // Frontend preview only. This saves a full snapshot on THIS device.
+  // It NEVER contacts an admin, verifies payment or publishes the business.
   Future<void> _continue() async {
     if (_busy) return;
     FocusScope.of(context).unfocus();
@@ -159,69 +229,135 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
       _submitted = true;
       _error = null;
     });
-
-    final valid = _form.currentState!.validate();
+    final valid = _form.currentState?.validate() ?? false;
     if (!valid ||
-        _banner == null ||
+        _bytes == null ||
         (!_online && _location == null) ||
         _hours.any((h) => h.mode == 'open' && h.startMinutes == h.endMinutes)) {
       setState(() => _error =
-          'Check the required fields, banner, location and opening hours.');
+          'Check all required fields, banner, location and opening hours.');
       return;
     }
-
-    final demoStore = ProfileDemoStore.instance;
-    if (!demoStore.previewEnabled) {
+    if (!_contactConsent) {
+      setState(() => _error =
+          'Please confirm the business contact and publication notice.');
+      return;
+    }
+    final store = ProfileDemoStore.instance;
+    if (!store.previewEnabled) {
       await showDialog<void>(
         context: context,
         builder: (dialogContext) => AlertDialog(
-          title: const Text('Business requests are not connected yet'),
-          content: const Text(
-            'This is a frontend preview. Enable Profile demo mode to test '
-            'a Pending request locally. No request can be sent to an '
-            'administrator until the backend is connected.',
-          ),
+          title: const Text('Frontend preview only'),
+          content: const Text('Enable Profile demo mode to save a request '
+              'locally. No real submissions are available before backend '
+              'integration.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('OK'),
-            ),
+              child: const Text('Close'),
+            )
           ],
         ),
       );
       return;
     }
 
-    setState(() => _busy = true);
-    // The existing demo store records summary fields only. The full form,
-    // banner, confirmed coordinates and opening hours will be included in
-    // the real backend request model in Step 6B.
-    demoStore.addBusinessRequest(
-      businessName: _name.text.trim(),
+    final snapshot = BusinessSubmission(
+      name: _name.text.trim(),
       category: _category == 'Other' ? _custom.text.trim() : (_category ?? ''),
-      location: _online ? 'Online only' : _address.text.trim(),
+      phone: _phone.text.trim(),
+      website: _normalizedWebsite(),
+      description: _about.text.trim(),
+      onlineOnly: _online,
+      address: _online ? '' : _address.text.trim(),
+      latitude: _online ? null : _location?.latitude,
+      longitude: _online ? null : _location?.longitude,
+      placeId: _online ? null : _location?.placeId,
+      city: _online ? null : _location?.city,
+      state: _online ? null : _location?.state,
+      countryCode: _online ? null : _location?.countryCode,
+      bannerBytes: _bytes!,
+      openingHours: {
+        for (var i = 0; i < _days.length; i++) _days[i]: _hours[i].display,
+      },
+      openingHoursStructured: {
+        for (var i = 0; i < _days.length; i++) _days[i]: _hours[i].toJson(),
+      },
     );
-    if (!mounted) return;
-    await showDialog<void>(
+    final validationError = snapshot.validate();
+    if (validationError != null) {
+      setState(() => _error = validationError);
+      return;
+    }
+
+    // Explicit review step: user sees what will be saved before submission.
+    final confirmed = await showDialog<bool>(
       context: context,
-      barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
-        icon: const Icon(Icons.pending_actions, color: AppColors.primary),
-        title: const Text('Request saved in demo mode'),
-        content: const Text(
-          'Your business request is Pending in your local Profile preview. '
-          'It has NOT been sent to an admin, no payment has been processed, '
-          'and the business is not published.',
+        title: Text(widget.initialRequest == null
+            ? 'Review business request'
+            : 'Review corrected request'),
+        content: SingleChildScrollView(
+          child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(snapshot.name,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(snapshot.category),
+                const SizedBox(height: 8),
+                Text('Location: ${snapshot.locationLabel}'),
+                Text('Contact: ${snapshot.phone}'),
+                const SizedBox(height: 12),
+                const Text('Submission will be Pending in your local demo '
+                    'Profile. No admin is notified, no payment is processed '
+                    'and nothing appears in the public directory.'),
+              ]),
         ),
         actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Go back')),
           FilledButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('View later in Profile'),
-          ),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Save Pending preview')),
         ],
       ),
     );
-    if (mounted) Navigator.pop(context, true);
+    if (!mounted || confirmed != true) return;
+
+    setState(() => _busy = true);
+    try {
+      final initial = widget.initialRequest;
+      final request = initial == null
+          ? store.submitBusinessRequest(snapshot)
+          : store.resubmitDeclinedBusinessRequest(initial.id, snapshot);
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) => AlertDialog(
+          icon: const Icon(Icons.pending_actions, color: AppColors.primary),
+          title: const Text('Saved as Pending (demo)'),
+          content: Text('Request ${request.id} is in Profile → '
+              'My Business Requests. This record exists only on this device '
+              'until the app restarts or demo mode is turned off. '
+              'It has NOT been sent to an admin.'),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Done'),
+            )
+          ],
+        ),
+      );
+      if (mounted) Navigator.pop(context, true);
+    } catch (error) {
+      if (mounted) setState(() => _error = 'Could not save request: $error');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Widget _section(String number, String title, String subtitle,
@@ -328,14 +464,18 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
           colorScheme: ColorScheme.fromSeed(seedColor: _navy),
           scaffoldBackgroundColor: const Color(0xFFF3F5F8)),
       child: Scaffold(
-        appBar: AppBar(title: const Text('Business studio'), actions: const [
-          Padding(
-              padding: EdgeInsets.only(right: 20),
-              child: Chip(
-                  backgroundColor: _gold,
-                  label: Text('PRO',
-                      style: TextStyle(fontWeight: FontWeight.w800))))
-        ]),
+        appBar: AppBar(
+            title: Text(widget.initialRequest == null
+                ? 'Post Business'
+                : 'Correct Business Request'),
+            actions: const [
+              Padding(
+                  padding: EdgeInsets.only(right: 20),
+                  child: Chip(
+                      backgroundColor: _gold,
+                      label: Text('PRO',
+                          style: TextStyle(fontWeight: FontWeight.w800))))
+            ]),
         body: SafeArea(
             child: Center(
                 child: ConstrainedBox(
@@ -389,7 +529,7 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
                                     color: const Color(0xFFF0F3F7),
                                     borderRadius: BorderRadius.circular(16),
                                     border: Border.all(
-                                        color: _submitted && _banner == null
+                                        color: _submitted && _bytes == null
                                             ? Colors.red
                                             : const Color(0xFFCBD4DF))),
                                 clipBehavior: Clip.antiAlias,
@@ -536,6 +676,18 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
                             label: const Text('Apply Monday to every day')),
                         for (var i = 0; i < 7; i++) _hoursRow(i),
                       ]),
+                      CheckboxListTile(
+                        contentPadding: EdgeInsets.zero,
+                        value: _contactConsent,
+                        onChanged: (value) =>
+                            setState(() => _contactConsent = value ?? false),
+                        title: const Text('I confirm these business details '
+                            'are accurate and may be reviewed by SaJHa.'),
+                        subtitle: const Text('The submitted contact number '
+                            'may be used by an administrator to contact me. '
+                            'Once approved, business contact details will '
+                            'be public in the directory.'),
+                      ),
                     ])),
                 if (_error != null)
                   Padding(
