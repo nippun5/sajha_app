@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'app.dart';
 
+import 'core/auth/backend_auth.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -20,5 +22,6 @@ void main() async {
     ),
   );
 
+  await BackendAuth.instance.restoreSession();
   runApp(const SajhaApp());
 }

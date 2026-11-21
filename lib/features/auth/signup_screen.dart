@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/constants/app_constants.dart';
 
+import '../../core/auth/backend_auth.dart';
+
 /// Frontend-only registration form. It does not create an account.
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -21,6 +23,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _confirmPassword = TextEditingController();
   String _dialCode = AppConstants.defaultDialCode;
   bool _showPassword = false;
+  bool _busy = false;
 
   @override
   void dispose() {
@@ -32,24 +35,34 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
-  void _previewRegistration() {
+  Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Registration preview'),
-        content: const Text(
-          'The form is valid, but no SaJHa account has been created. '
-          'Registration and phone verification will be connected to the backend later.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
+    final entered = _phone.text.trim().replaceAll(RegExp(r'[\s().-]'), '');
+    final phone = entered.startsWith('+') ? entered : '$_dialCode$entered';
+    if (!RegExp(r'^\+[1-9][0-9]{6,14}$').hasMatch(phone)) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Enter a valid international phone number.'),
+      ));
+      return;
+    }
+    setState(() => _busy = true);
+    try {
+      await BackendAuth.instance.register(
+        name: _name.text.trim(),
+        email: _email.text.trim(),
+        password: _password.text,
+        phone: phone,
+      );
+      if (!mounted) return;
+      context.go(AppConstants.phoneVerificationRoute);
+    } on BackendAuthException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message)),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   @override
@@ -143,8 +156,9 @@ class _SignupScreenState extends State<SignupScreen> {
                           setState(() => _showPassword = !_showPassword),
                     ),
                   ),
-                  validator: (v) =>
-                      (v ?? '').length < 8 ? 'Use at least 8 characters' : null,
+                  validator: (v) => (v ?? '').length < 10
+                      ? 'Use at least 10 characters'
+                      : null,
                 ),
                 const SizedBox(height: 14),
                 TextFormField(
@@ -158,7 +172,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 const SizedBox(height: 24),
                 FilledButton(
-                  onPressed: _previewRegistration,
+                  onPressed: _busy ? null : _register,
                   style: FilledButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       minimumSize: const Size.fromHeight(52)),

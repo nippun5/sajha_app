@@ -1,3 +1,5 @@
+import 'live/live_marketplace_feed.dart';
+import '../../core/network/backend_config.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -60,6 +62,9 @@ class _MarketplaceCategoryPageState extends State<MarketplaceCategoryPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (BackendConfig.configuredBase.isNotEmpty) {
+      return LiveMarketplaceFeed(kind: widget.kind);
+    }
     return AnimatedBuilder(
       animation: Listenable.merge([_store, ProfileDemoStore.instance]),
       builder: (context, _) {

@@ -13,6 +13,8 @@ import 'my_listings_screen.dart';
 import 'profile_widgets.dart';
 import 'saved_listings_screen.dart';
 
+import '../../core/auth/backend_auth.dart';
+
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
@@ -203,10 +205,9 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 12),
             if (signedIn)
               OutlinedButton.icon(
-                onPressed: () {
-                  // Future: revoke refresh token through backend first.
-                  auth.clearLocalSession();
-                  context.go(AppConstants.loginRoute);
+                onPressed: () async {
+                  await BackendAuth.instance.signOut();
+                  if (context.mounted) context.go(AppConstants.loginRoute);
                 },
                 icon: const Icon(Icons.logout),
                 label: const Text('Sign Out'),

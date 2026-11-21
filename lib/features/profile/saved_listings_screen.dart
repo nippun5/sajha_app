@@ -1,3 +1,5 @@
+import '../marketplace/live/live_account_listings_screen.dart';
+import '../../core/network/backend_config.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -13,6 +15,9 @@ class SavedListingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (BackendConfig.configuredBase.isNotEmpty) {
+      return const LiveAccountListingsScreen(mode: LiveAccountListMode.saved);
+    }
     final market = MarketplaceMockStore.instance;
     return Scaffold(
       backgroundColor: AppColors.background,

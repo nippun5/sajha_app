@@ -1,3 +1,5 @@
+import '../marketplace/live/live_account_listings_screen.dart';
+import '../../core/network/backend_config.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
@@ -18,65 +20,68 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
   String _filter = 'All';
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: AppBar(title: const Text('My Listings')),
-        body: AnimatedBuilder(
-          animation: Listenable.merge([_market, ProfileDemoStore.instance]),
-          builder: (context, _) {
-            if (!ProfileDemoStore.instance.previewEnabled) {
-              return const ProfileEmptyState(
-                icon: Icons.lock_outline,
-                title: 'Sign in to manage listings',
-                message: 'This page will display your posts when '
-                    'authentication and the marketplace API are connected. '
-                    'Use Profile demo mode in a debug build to test locally.',
-              );
-            }
-            final items = _market.myListings
-                .where((e) => _filter == 'All' || e.status.label == _filter)
-                .toList();
-            return ListView(padding: const EdgeInsets.all(16), children: [
-              const DemoBanner(),
-              const SizedBox(height: 14),
-              const Text('Your marketplace posts',
-                  style: TextStyle(
-                      fontSize: 20,
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              const Text(
-                  'Drafts are private. Activating a listing here '
-                  'only makes it visible in this app\'s local demo marketplace.',
-                  style: TextStyle(color: AppColors.textSecondary)),
-              const SizedBox(height: 16),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                    children: ['All', 'Active', 'Closed', 'Draft']
-                        .map((f) => Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: ChoiceChip(
-                                label: Text(f),
-                                selected: _filter == f,
-                                onSelected: (_) => setState(() => _filter = f),
-                              ),
-                            ))
-                        .toList()),
-              ),
-              const SizedBox(height: 14),
-              if (items.isEmpty)
-                const ProfileEmptyState(
-                  icon: Icons.inventory_2_outlined,
-                  title: 'No listings in this category',
-                  message: 'Create a test listing from the Post tab.',
-                )
-              else
-                ...items.map(_card),
-            ]);
-          },
-        ),
-      );
+  Widget build(BuildContext context) => BackendConfig.configuredBase.isNotEmpty
+      ? const LiveAccountListingsScreen(mode: LiveAccountListMode.mine)
+      : Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(title: const Text('My Listings')),
+          body: AnimatedBuilder(
+            animation: Listenable.merge([_market, ProfileDemoStore.instance]),
+            builder: (context, _) {
+              if (!ProfileDemoStore.instance.previewEnabled) {
+                return const ProfileEmptyState(
+                  icon: Icons.lock_outline,
+                  title: 'Sign in to manage listings',
+                  message: 'This page will display your posts when '
+                      'authentication and the marketplace API are connected. '
+                      'Use Profile demo mode in a debug build to test locally.',
+                );
+              }
+              final items = _market.myListings
+                  .where((e) => _filter == 'All' || e.status.label == _filter)
+                  .toList();
+              return ListView(padding: const EdgeInsets.all(16), children: [
+                const DemoBanner(),
+                const SizedBox(height: 14),
+                const Text('Your marketplace posts',
+                    style: TextStyle(
+                        fontSize: 20,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                const Text(
+                    'Drafts are private. Activating a listing here '
+                    'only makes it visible in this app\'s local demo marketplace.',
+                    style: TextStyle(color: AppColors.textSecondary)),
+                const SizedBox(height: 16),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                      children: ['All', 'Active', 'Closed', 'Draft']
+                          .map((f) => Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: ChoiceChip(
+                                  label: Text(f),
+                                  selected: _filter == f,
+                                  onSelected: (_) =>
+                                      setState(() => _filter = f),
+                                ),
+                              ))
+                          .toList()),
+                ),
+                const SizedBox(height: 14),
+                if (items.isEmpty)
+                  const ProfileEmptyState(
+                    icon: Icons.inventory_2_outlined,
+                    title: 'No listings in this category',
+                    message: 'Create a test listing from the Post tab.',
+                  )
+                else
+                  ...items.map(_card),
+              ]);
+            },
+          ),
+        );
 
   Widget _card(MarketItem item) => Card(
         margin: const EdgeInsets.only(bottom: 12),

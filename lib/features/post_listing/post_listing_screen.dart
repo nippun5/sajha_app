@@ -1,3 +1,5 @@
+import 'live_post_listing_screen.dart';
+import '../../core/network/backend_config.dart';
 import 'package:flutter/material.dart';
 import 'package:sajha_app/features/post_listing/post_business_screen.dart';
 import 'package:sajha_app/features/post_listing/post_job_screen.dart';
@@ -27,7 +29,10 @@ class PostListingScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const PostBuySellScreen(),
+                    builder: (context) =>
+                        BackendConfig.configuredBase.isNotEmpty
+                            ? const LivePostListingScreen(kind: 'product')
+                            : const PostBuySellScreen(),
                   ),
                 );
               },
@@ -41,7 +46,10 @@ class PostListingScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const PostRentRoomScreen(),
+                    builder: (context) =>
+                        BackendConfig.configuredBase.isNotEmpty
+                            ? const LivePostListingScreen(kind: 'room')
+                            : const PostRentRoomScreen(),
                   ),
                 );
               },
@@ -55,7 +63,10 @@ class PostListingScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const PostJobScreen(),
+                    builder: (context) =>
+                        BackendConfig.configuredBase.isNotEmpty
+                            ? const LivePostListingScreen(kind: 'job')
+                            : const PostJobScreen(),
                   ),
                 );
               },

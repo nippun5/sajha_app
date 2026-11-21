@@ -3,6 +3,9 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 
+import '../../core/auth/auth_session.dart';
+import '../../core/auth/backend_auth.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -17,7 +20,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isEmailMode = true;
   bool _obscurePassword = true;
-  final bool _isLoading = false;
+  bool _isLoading = false;
 
   // Country picker state
   String _dialCode = AppConstants.defaultDialCode;
@@ -32,35 +35,34 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // ── Actions ──────────────────────────────────────────────────
 
-  void _login() {
+  Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
-
-    // Frontend preview only.
-    // TODO: call Spring Boot auth endpoint and verify session.
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Login preview'),
-        content: const Text(
-          'Your form is valid, but SaJHa authentication '
-          'is not connected yet. No password was checked '
-          'and no session was created.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Close'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              context.go(AppConstants.shellRoute);
-            },
-            child: const Text('Browse as guest'),
-          ),
-        ],
-      ),
-    );
+    if (!_isEmailMode) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Phone-number login is not available yet. Please select Email.')),
+      );
+      return;
+    }
+    setState(() => _isLoading = true);
+    try {
+      await BackendAuth.instance.signIn(
+        email: _credentialCtrl.text.trim(),
+        password: _passwordCtrl.text,
+      );
+      if (!mounted) return;
+      context.go(AuthSession.instance.isPhoneVerified
+          ? AppConstants.shellRoute
+          : AppConstants.phoneVerificationRoute);
+    } on BackendAuthException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message)),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   void _socialLogin(String provider) {

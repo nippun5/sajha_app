@@ -4,6 +4,8 @@ import 'package:flutter_native_splash/flutter_native_splash.dart'; // 1. Import 
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
 
+import '../../core/auth/auth_session.dart';
+
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -71,7 +73,11 @@ class _SplashScreenState extends State<SplashScreen>
 
   void _scheduleNavigation() {
     Future.delayed(AppConstants.splashDuration, () {
-      if (mounted) context.go(AppConstants.loginRoute);
+      if (mounted) {
+        context.go(AuthSession.instance.isSignedIn
+            ? AppConstants.shellRoute
+            : AppConstants.loginRoute);
+      }
     });
   }
 

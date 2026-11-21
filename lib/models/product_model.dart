@@ -128,6 +128,7 @@ class ProductModel {
     bool? isNegotiable,
     bool? isAvailable,
     DateTime? postedAt,
+    String? sellerPhone,
   }) {
     return ProductModel(
         id: id ?? this.id,
@@ -143,6 +144,6 @@ class ProductModel {
         isNegotiable: isNegotiable ?? this.isNegotiable,
         isAvailable: isAvailable ?? this.isAvailable,
         postedAt: postedAt ?? this.postedAt,
-        sellerPhone: sellerPhone);
+        sellerPhone: sellerPhone ?? this.sellerPhone);
   }
 }

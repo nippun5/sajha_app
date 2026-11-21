@@ -1,3 +1,6 @@
+import '../marketplace/live/live_marketplace_feed.dart';
+import '../marketplace/data/marketplace_mock_store.dart';
+import '../../core/network/backend_config.dart';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
@@ -102,11 +105,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   widget.categoryIndex.value = i;
                 }
               },
-              children: const [
-                BuySellPage(),
-                RentRoomPage(),
-                JobSearchPage(),
-              ],
+              children: BackendConfig.configuredBase.isNotEmpty
+                  ? const [
+                      LiveMarketplaceFeed(kind: MarketKind.buySell),
+                      LiveMarketplaceFeed(kind: MarketKind.room),
+                      LiveMarketplaceFeed(kind: MarketKind.job),
+                    ]
+                  : const [
+                      BuySellPage(),
+                      RentRoomPage(),
+                      JobSearchPage(),
+                    ],
             ),
           ),
         ],
