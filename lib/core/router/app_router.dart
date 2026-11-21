@@ -39,8 +39,8 @@ abstract final class AppRouter {
       // ── Login ────────────────────────────────────────────────
       GoRoute(
         path: AppConstants.loginRoute,
-        pageBuilder: (context, state) => CustomTransitionPage(
-          child: const LoginScreen(),
+        pageBuilder: (context, state) => const CustomTransitionPage(
+          child: LoginScreen(),
           transitionsBuilder: _fadeTransition,
         ),
       ),
@@ -78,7 +78,7 @@ abstract final class AppRouter {
       // inside main_shell.dart — they do NOT belong in this file.
       GoRoute(
         path: AppConstants.shellRoute,
-        pageBuilder: (context, state) => NoTransitionPage(
+        pageBuilder: (context, state) => const NoTransitionPage(
           // No 'const' — MainShell() contains a non-const IndexedStack
           child: MainShell(),
         ),
@@ -97,7 +97,7 @@ abstract final class AppRouter {
 
           return AppConstants.loginRoute;
         },
-        pageBuilder: (context, state) => CustomTransitionPage(
+        pageBuilder: (context, state) => const CustomTransitionPage(
           // No 'const' — PostListingScreen() uses non-const children
           child: PostListingScreen(),
           transitionsBuilder: _slideUpTransition,

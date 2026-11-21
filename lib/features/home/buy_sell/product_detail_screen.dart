@@ -60,7 +60,7 @@ class ProductDetailScreen extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () {
-                      // Firebase chat later
+                      _messageSeller(product.sellerPhone);
                     },
                     icon: const Icon(Icons.message),
                     label: const Text('Message'),

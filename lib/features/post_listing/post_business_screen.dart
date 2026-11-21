@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -149,8 +148,9 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
   Future<void> _recoverImage() async {
     try {
       final response = await _picker.retrieveLostData();
-      if (response.files?.isNotEmpty ?? false)
+      if (response.files?.isNotEmpty ?? false) {
         await _setImage(response.files!.first);
+      }
     } catch (_) {
       if (mounted) setState(() => _error = 'Please select your banner again.');
     }
@@ -176,11 +176,12 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
       throw StateError('Choose a banner smaller than 10 MB.');
     }
     final bytes = await image.readAsBytes();
-    if (mounted)
+    if (mounted) {
       setState(() {
         _bytes = bytes;
         _error = null;
       });
+    }
   }
 
   Future<void> _pickBanner() async {
@@ -190,9 +191,10 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
           source: ImageSource.gallery, maxWidth: 2400, imageQuality: 90);
       if (image != null) await _setImage(image);
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(() => _error =
             'Could not load banner. Choose an image under 10 MB and allow photo access.');
+      }
     } finally {
       if (mounted) setState(() => _picking = false);
     }
@@ -409,7 +411,7 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
     Future<void> pick(bool opening) async {
       final value = await showTimePicker(
           context: context, initialTime: opening ? h.start : h.end);
-      if (mounted && value != null)
+      if (mounted && value != null) {
         setState(() {
           if (opening) {
             h.start = value;
@@ -417,6 +419,7 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
             h.end = value;
           }
         });
+      }
     }
 
     return Padding(
@@ -638,8 +641,9 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
                         _field(_phone, 'Contact number',
                             required: true,
                             keyboard: TextInputType.phone, validator: (value) {
-                          if (_required(value) != null)
+                          if (_required(value) != null) {
                             return 'Enter a contact number.';
+                          }
                           final cleaned =
                               value!.replaceAll(RegExp(r'[\s().-]'), '');
                           return RegExp(r'^\+?[0-9]{7,15}$').hasMatch(cleaned)
@@ -648,8 +652,9 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
                         }),
                         _field(_website, 'Website (optional)',
                             keyboard: TextInputType.url, validator: (value) {
-                          if (value == null || value.trim().isEmpty)
+                          if (value == null || value.trim().isEmpty) {
                             return null;
+                          }
                           final uri = Uri.tryParse(_normalizedWebsite());
                           return uri != null &&
                                   ['http', 'https'].contains(uri.scheme) &&

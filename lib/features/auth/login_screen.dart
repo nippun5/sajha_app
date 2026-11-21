@@ -17,7 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _isEmailMode = true;
   bool _obscurePassword = true;
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   // Country picker state
   String _dialCode = AppConstants.defaultDialCode;
@@ -31,85 +31,82 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   // ── Actions ──────────────────────────────────────────────────
- 
-void _login() {
-  if (!_formKey.currentState!.validate()) return;
 
-  // Frontend preview only.
-  // TODO: call Spring Boot auth endpoint and verify session.
-  showDialog<void>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: const Text('Login preview'),
-      content: const Text(
-        'Your form is valid, but SaJHa authentication '
-        'is not connected yet. No password was checked '
-        'and no session was created.',
+  void _login() {
+    if (!_formKey.currentState!.validate()) return;
+
+    // Frontend preview only.
+    // TODO: call Spring Boot auth endpoint and verify session.
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Login preview'),
+        content: const Text(
+          'Your form is valid, but SaJHa authentication '
+          'is not connected yet. No password was checked '
+          'and no session was created.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Close'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              context.go(AppConstants.shellRoute);
+            },
+            child: const Text('Browse as guest'),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(dialogContext),
-          child: const Text('Close'),
-        ),
-        FilledButton(
-          onPressed: () {
-            Navigator.pop(dialogContext);
-            context.go(AppConstants.shellRoute);
-          },
-          child: const Text('Browse as guest'),
-        ),
-      ],
-    ),
-  );
-}
-
+    );
+  }
 
   void _socialLogin(String provider) {
+    void socialLogin(String provider) {
+      final providerName = switch (provider) {
+        'google' => 'Google',
+        'facebook' => 'Facebook',
+        'apple' => 'Apple',
+        _ => 'Social',
+      };
 
-void _socialLogin(String provider) {
-  final providerName = switch (provider) {
-    'google' => 'Google',
-    'facebook' => 'Facebook',
-    'apple' => 'Apple',
-    _ => 'Social',
-  };
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text('Continue with $providerName'),
+          content: Text(
+            '$providerName authentication is not connected yet. '
+            'Once integrated, SaJHa will verify your identity '
+            'with $providerName and the backend.\n\n'
+            'You can preview the profile-completion screen '
+            'without creating or signing into an account.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
 
-  showDialog<void>(
-    context: context,
-    builder: (dialogContext) => AlertDialog(
-      title: Text('Continue with $providerName'),
-      content: Text(
-        '$providerName authentication is not connected yet. '
-        'Once integrated, SaJHa will verify your identity '
-        'with $providerName and the backend.\n\n'
-        'You can preview the profile-completion screen '
-        'without creating or signing into an account.',
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(dialogContext),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          onPressed: () {
-            Navigator.pop(dialogContext);
-
-            // UI preview, NOT successful social authentication.
-            context.push(
-              AppConstants.completeProfileRoute,
-              extra: {
-                'provider': provider,
-                'preview': true,
+                // UI preview, NOT successful social authentication.
+                context.push(
+                  AppConstants.completeProfileRoute,
+                  extra: {
+                    'provider': provider,
+                    'preview': true,
+                  },
+                );
               },
-            );
-          },
-          child: const Text('Preview Setup'),
+              child: const Text('Preview Setup'),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
-}
-
+      );
+    }
   }
 
   void _openCountryPicker() {
@@ -201,8 +198,7 @@ void _socialLogin(String provider) {
                   },
                   decoration: InputDecoration(
                     labelText: 'Password',
-                    prefixIcon:
-                        const Icon(Icons.lock_outline, size: 20),
+                    prefixIcon: const Icon(Icons.lock_outline, size: 20),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword
@@ -210,8 +206,8 @@ void _socialLogin(String provider) {
                             : Icons.visibility_off_outlined,
                         size: 20,
                       ),
-                      onPressed: () => setState(
-                          () => _obscurePassword = !_obscurePassword),
+                      onPressed: () =>
+                          setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
                 ),
@@ -220,9 +216,9 @@ void _socialLogin(String provider) {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-               onPressed: () {
-                    context.push(AppConstants.forgotPasswordRoute);
-                  },
+                    onPressed: () {
+                      context.push(AppConstants.forgotPasswordRoute);
+                    },
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 0, vertical: 8),
@@ -245,31 +241,29 @@ void _socialLogin(String provider) {
                       : const Text('Sign In'),
                 ),
 
-              
-const SizedBox(height: 8),
+                const SizedBox(height: 8),
 
-SizedBox(
-  width: double.infinity,
-  child: TextButton.icon(
-    onPressed: () {
-      context.go(AppConstants.shellRoute);
-    },
-    icon: const Icon(
-      Icons.explore_outlined,
-      color: AppColors.primary,
-    ),
-    label: const Text(
-      'Continue as Guest',
-      style: TextStyle(
-        color: AppColors.primary,
-        fontWeight: FontWeight.w600,
-      ),
-    ),
-  ),
-),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: () {
+                      context.go(AppConstants.shellRoute);
+                    },
+                    icon: const Icon(
+                      Icons.explore_outlined,
+                      color: AppColors.primary,
+                    ),
+                    label: const Text(
+                      'Continue as Guest',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
 
-const SizedBox(height: 24),
-
+                const SizedBox(height: 24),
 
                 // ── Divider ───────────────────────────────
                 const _OrDivider(),
@@ -299,36 +293,34 @@ const SizedBox(height: 24),
                 const SizedBox(height: 32),
 
                 // ── Register ──────────────────────────────
-                
-Center(
-  child: Wrap(
-    alignment: WrapAlignment.center,
-    crossAxisAlignment: WrapCrossAlignment.center,
-    spacing: 4,
-    children: [
-      const Text(
-        "Don't have an account?",
-        style: TextStyle(
-          color: AppColors.textSecondary,
-        ),
-      ),
-      TextButton(
-        onPressed: () {
-          context.push(AppConstants.signupRoute);
-        },
-        child: const Text(
-          'Sign Up',
-          style: TextStyle(
-            color: AppColors.primary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    ],
-  ),
-),
 
-
+                Center(
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 4,
+                    children: [
+                      const Text(
+                        "Don't have an account?",
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          context.push(AppConstants.signupRoute);
+                        },
+                        child: const Text(
+                          'Sign Up',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
 
                 const SizedBox(height: 32),
               ],
@@ -345,8 +337,7 @@ Center(
 class _SegmentedToggle extends StatelessWidget {
   final bool isEmailMode;
   final ValueChanged<bool> onChanged;
-  const _SegmentedToggle(
-      {required this.isEmailMode, required this.onChanged});
+  const _SegmentedToggle({required this.isEmailMode, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -377,8 +368,7 @@ class _Pill extends StatelessWidget {
   final String label;
   final bool active;
   final VoidCallback onTap;
-  const _Pill(
-      {required this.label, required this.active, required this.onTap});
+  const _Pill({required this.label, required this.active, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -404,11 +394,8 @@ class _Pill extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 13,
-                fontWeight:
-                    active ? FontWeight.w600 : FontWeight.w400,
-                color: active
-                    ? AppColors.textPrimary
-                    : AppColors.textHint,
+                fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+                color: active ? AppColors.textPrimary : AppColors.textHint,
               ),
             ),
           ),
@@ -429,8 +416,9 @@ class _EmailField extends StatelessWidget {
       keyboardType: TextInputType.emailAddress,
       validator: (v) {
         if (v == null || v.isEmpty) return 'Email is required';
-        if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v))
+        if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(v)) {
           return 'Enter a valid email';
+        }
         return null;
       },
       decoration: const InputDecoration(
@@ -510,16 +498,15 @@ class _OrDivider extends StatelessWidget {
   const _OrDivider();
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return const Row(
       children: [
-        const Expanded(child: Divider()),
+        Expanded(child: Divider()),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
+          padding: EdgeInsets.symmetric(horizontal: 14),
           child: Text('or',
-              style: TextStyle(
-                  fontSize: 13, color: AppColors.textHint)),
+              style: TextStyle(fontSize: 13, color: AppColors.textHint)),
         ),
-        const Expanded(child: Divider()),
+        Expanded(child: Divider()),
       ],
     );
   }
@@ -600,8 +587,7 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
       setState(() {
         _filtered = AppConstants.countries
             .where((c) =>
-                c['name']!.toLowerCase().contains(q) ||
-                c['code']!.contains(q))
+                c['name']!.toLowerCase().contains(q) || c['code']!.contains(q))
             .toList();
       });
     });
@@ -659,18 +645,15 @@ class _CountryPickerSheetState extends State<_CountryPickerSheet> {
                 final c = _filtered[i];
                 final selected = c['code'] == widget.selectedCode;
                 return ListTile(
-                  leading: Text(c['flag']!,
-                      style: const TextStyle(fontSize: 24)),
-                  title: Text(c['name']!,
-                      style: const TextStyle(fontSize: 14)),
+                  leading:
+                      Text(c['flag']!, style: const TextStyle(fontSize: 24)),
+                  title: Text(c['name']!, style: const TextStyle(fontSize: 14)),
                   trailing: Text(c['code']!,
                       style: TextStyle(
-                          color: selected
-                              ? AppColors.primary
-                              : AppColors.textHint,
-                          fontWeight: selected
-                              ? FontWeight.w700
-                              : FontWeight.w400,
+                          color:
+                              selected ? AppColors.primary : AppColors.textHint,
+                          fontWeight:
+                              selected ? FontWeight.w700 : FontWeight.w400,
                           fontSize: 13)),
                   selected: selected,
                   selectedColor: AppColors.primary,

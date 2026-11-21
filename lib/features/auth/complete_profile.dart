@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_constants.dart';
@@ -13,12 +12,10 @@ class CompleteProfileScreen extends StatefulWidget {
   });
 
   @override
-  State<CompleteProfileScreen> createState() =>
-      _CompleteProfileScreenState();
+  State<CompleteProfileScreen> createState() => _CompleteProfileScreenState();
 }
 
-class _CompleteProfileScreenState
-    extends State<CompleteProfileScreen> {
+class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final _nameCtrl = TextEditingController();
@@ -29,8 +26,7 @@ class _CompleteProfileScreenState
   String _dialCode = AppConstants.defaultDialCode;
 
   String get _provider {
-    final provider =
-        widget.userData['provider'] as String? ?? 'social';
+    final provider = widget.userData['provider'] as String? ?? 'social';
 
     if (provider.isEmpty) return 'Social';
 
@@ -90,12 +86,10 @@ class _CompleteProfileScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 16),
-
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color:
-                        AppColors.periwinkle.withOpacity(0.10),
+                    color: AppColors.periwinkle.withOpacity(0.10),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -118,9 +112,7 @@ class _CompleteProfileScreenState
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 28),
-
                 const Text(
                   'Tell us about yourself',
                   style: TextStyle(
@@ -130,7 +122,6 @@ class _CompleteProfileScreenState
                   ),
                 ),
                 const SizedBox(height: 8),
-
                 const Text(
                   'Your profile helps other community '
                   'members connect with you.',
@@ -139,9 +130,7 @@ class _CompleteProfileScreenState
                     height: 1.5,
                   ),
                 ),
-
                 const SizedBox(height: 28),
-
                 TextFormField(
                   controller: _nameCtrl,
                   textCapitalization: TextCapitalization.words,
@@ -156,9 +145,7 @@ class _CompleteProfileScreenState
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 16),
-
                 DropdownButtonFormField<String>(
                   value: _dialCode,
                   isExpanded: true,
@@ -182,44 +169,34 @@ class _CompleteProfileScreenState
                     }
                   },
                 ),
-
                 const SizedBox(height: 12),
-
                 TextFormField(
                   controller: _phoneCtrl,
                   keyboardType: TextInputType.phone,
                   decoration: const InputDecoration(
                     labelText: 'Contact number',
                     prefixIcon: Icon(Icons.phone_outlined),
-                    helperText:
-                        'Required before publishing listings',
+                    helperText: 'Required before publishing listings',
                   ),
                   validator: (value) {
-                    final digits = (value ?? '')
-                        .replaceAll(RegExp(r'\D'), '');
+                    final digits = (value ?? '').replaceAll(RegExp(r'\D'), '');
 
-                    if (digits.length < 7 ||
-                        digits.length > 15) {
+                    if (digits.length < 7 || digits.length > 15) {
                       return 'Enter a valid phone number';
                     }
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 16),
-
                 TextFormField(
                   controller: _cityCtrl,
                   textCapitalization: TextCapitalization.words,
                   decoration: const InputDecoration(
                     labelText: 'City (optional)',
-                    prefixIcon:
-                        Icon(Icons.location_city_outlined),
+                    prefixIcon: Icon(Icons.location_city_outlined),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
                 TextFormField(
                   controller: _regionCtrl,
                   textCapitalization: TextCapitalization.words,
@@ -228,9 +205,7 @@ class _CompleteProfileScreenState
                     prefixIcon: Icon(Icons.map_outlined),
                   ),
                 ),
-
                 const SizedBox(height: 18),
-
                 const Text(
                   'Your phone number will not be displayed '
                   'publicly unless you choose to show it '
@@ -241,9 +216,7 @@ class _CompleteProfileScreenState
                     height: 1.5,
                   ),
                 ),
-
                 const SizedBox(height: 28),
-
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(

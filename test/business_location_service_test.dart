@@ -21,22 +21,37 @@ void main() {
   });
 
   test('Missing or invalid coordinates cannot be selected', () {
-    expect(BusinessLocation.fromGeoapify({
-      'formatted': 'Missing coordinates'
-    }), isNull);
-    expect(BusinessLocation.fromGeoapify({
-      'formatted': 'Invalid', 'lat': 95, 'lon': 0,
-    }), isNull);
-    expect(BusinessLocation.fromGeoapify({
-      'formatted': '', 'lat': 32, 'lon': -96,
-    }), isNull);
+    expect(BusinessLocation.fromGeoapify({'formatted': 'Missing coordinates'}),
+        isNull);
+    expect(
+        BusinessLocation.fromGeoapify({
+          'formatted': 'Invalid',
+          'lat': 95,
+          'lon': 0,
+        }),
+        isNull);
+    expect(
+        BusinessLocation.fromGeoapify({
+          'formatted': '',
+          'lat': 32,
+          'lon': -96,
+        }),
+        isNull);
   });
 
   test('Existing BusinessModel constructors still work unchanged', () {
     final business = BusinessModel(
-      id: 'demo', name: 'Demo', imageUrl: '', description: '',
-      address: 'Demo', phone: '', website: '', category: 'Other',
-      rating: 0, reviewCount: 0, openingHours: {},
+      id: 'demo',
+      name: 'Demo',
+      imageUrl: '',
+      description: '',
+      address: 'Demo',
+      phone: '',
+      website: '',
+      category: 'Other',
+      rating: 0,
+      reviewCount: 0,
+      openingHours: {},
     );
     expect(business.hasCoordinates, isFalse);
     expect(business.onlineOnly, isFalse);
@@ -44,10 +59,20 @@ void main() {
 
   test('BusinessModel with a real pinned location supports map actions', () {
     final business = BusinessModel(
-      id: 'demo2', name: 'Demo', imageUrl: '', description: '',
-      address: 'Dallas, TX', phone: '', website: '', category: 'Other',
-      rating: 0, reviewCount: 0, openingHours: {},
-      latitude: 32.78, longitude: -96.8, city: 'Dallas',
+      id: 'demo2',
+      name: 'Demo',
+      imageUrl: '',
+      description: '',
+      address: 'Dallas, TX',
+      phone: '',
+      website: '',
+      category: 'Other',
+      rating: 0,
+      reviewCount: 0,
+      openingHours: {},
+      latitude: 32.78,
+      longitude: -96.8,
+      city: 'Dallas',
     );
     expect(business.hasCoordinates, isTrue);
   });

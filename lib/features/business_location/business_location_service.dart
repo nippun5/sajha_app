@@ -25,8 +25,12 @@ class BusinessLocation {
   static BusinessLocation? fromGeoapify(Map<String, dynamic> json) {
     final lat = json['lat'];
     final lon = json['lon'];
-    if (lat is! num || lon is! num ||
-        lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+    if (lat is! num ||
+        lon is! num ||
+        lat < -90 ||
+        lat > 90 ||
+        lon < -180 ||
+        lon > 180) {
       return null;
     }
     final address = (json['formatted'] as String? ?? '').trim();
@@ -62,7 +66,8 @@ abstract class BusinessLocationService {
 /// Temporary frontend integration. API keys embedded in a distributed app can
 /// be extracted; proxy through Spring Boot before public production launch.
 class GeoapifyBusinessLocationService implements BusinessLocationService {
-  const GeoapifyBusinessLocationService({this.apiKey = const String.fromEnvironment('GEOAPIFY_API_KEY')});
+  const GeoapifyBusinessLocationService(
+      {this.apiKey = const String.fromEnvironment('GEOAPIFY_API_KEY')});
 
   final String apiKey;
 
@@ -100,7 +105,8 @@ class GeoapifyBusinessLocationService implements BusinessLocationService {
     final data = await _request(uri);
     final results = data['results'];
     if (results is! List) return const [];
-    return results.whereType<Map<String, dynamic>>()
+    return results
+        .whereType<Map<String, dynamic>>()
         .map(BusinessLocation.fromGeoapify)
         .whereType<BusinessLocation>()
         .toList(growable: false);
@@ -117,11 +123,14 @@ class GeoapifyBusinessLocationService implements BusinessLocationService {
     });
     final data = await _request(uri);
     final results = data['results'];
-    if (results is! List || results.isEmpty || results.first is! Map<String, dynamic>) {
+    if (results is! List ||
+        results.isEmpty ||
+        results.first is! Map<String, dynamic>) {
       return null;
     }
     // Keep the chosen pin, not the nearest road/building point.
-    final nearest = BusinessLocation.fromGeoapify(results.first as Map<String, dynamic>);
+    final nearest =
+        BusinessLocation.fromGeoapify(results.first as Map<String, dynamic>);
     if (nearest == null) return null;
     return BusinessLocation(
       formattedAddress: nearest.formattedAddress,

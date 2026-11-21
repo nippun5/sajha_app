@@ -181,17 +181,19 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                 child: const Text('Cancel')),
             FilledButton(
                 onPressed: () {
-                  if (title.text.trim().isEmpty || price.text.trim().isEmpty)
+                  if (title.text.trim().isEmpty || price.text.trim().isEmpty) {
                     return;
+                  }
                   Navigator.pop(dialogContext, true);
                 },
                 child: const Text('Save demo')),
           ],
         ),
       );
-      if (ok == true)
+      if (ok == true) {
         _market.updateMine(item.id,
             title: title.text.trim(), priceLabel: price.text.trim());
+      }
     } finally {
       title.dispose();
       price.dispose();

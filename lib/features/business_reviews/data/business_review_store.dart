@@ -88,8 +88,9 @@ class BusinessReviewStore extends ChangeNotifier {
       );
     }
     final reviews = reviewsFor(business);
-    if (reviews.isEmpty)
+    if (reviews.isEmpty) {
       return const BusinessRatingSummary(average: 0, count: 0);
+    }
     final total = reviews.fold<int>(0, (sum, review) => sum + review.stars);
     return BusinessRatingSummary(
       average: total / reviews.length,
@@ -168,8 +169,9 @@ class BusinessReviewStore extends ChangeNotifier {
     required String reason,
   }) {
     if (!canWritePreview) throw StateError('Reporting is not connected yet.');
-    if (!reportReasons.contains(reason))
+    if (!reportReasons.contains(reason)) {
       throw ArgumentError('Choose a valid report reason.');
+    }
     final matches =
         reviewsFor(business).where((review) => review.id == reviewId);
     if (matches.isEmpty) throw StateError('Review not found.');

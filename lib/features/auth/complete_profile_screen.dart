@@ -20,8 +20,8 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
   final _postcodeCtrl = TextEditingController();
 
   bool _isLoading = false;
-  String _dialCode = AppConstants.defaultDialCode;
-  String _flag = AppConstants.defaultCountryFlag;
+  final String _dialCode = AppConstants.defaultDialCode;
+  final String _flag = AppConstants.defaultCountryFlag;
 
   String get _provider => widget.userData['provider'] as String? ?? 'social';
 
@@ -75,11 +75,11 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 // ── Progress ──────────────────────────────
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
+                  child: const LinearProgressIndicator(
                     value: 0.7,
                     minHeight: 4,
                     backgroundColor: AppColors.border,
-                    valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+                    valueColor: AlwaysStoppedAnimation(AppColors.primary),
                   ),
                 ),
                 const SizedBox(height: 6),
@@ -131,7 +131,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 const SizedBox(height: 28),
 
                 // ── Phone ─────────────────────────────────
-                _SectionLabel(label: 'Contact number'),
+                const _SectionLabel(label: 'Contact number'),
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -161,7 +161,7 @@ class _CompleteProfileScreenState extends State<CompleteProfileScreen> {
                 const SizedBox(height: 20),
 
                 // ── Address ───────────────────────────────
-                _SectionLabel(label: 'Address'),
+                const _SectionLabel(label: 'Address'),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _streetCtrl,

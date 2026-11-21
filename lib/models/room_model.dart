@@ -19,8 +19,6 @@ class RoomModel {
   final String ownerPhone;
   final String preferredGender;
 
-
-
   const RoomModel({
     required this.id,
     required this.title,
@@ -41,7 +39,6 @@ class RoomModel {
     required this.ownerName,
     required this.ownerPhone,
     required this.preferredGender,
-
   });
 
   String get locationDisplay => '$suburb, $state $postcode';
@@ -62,7 +59,7 @@ class RoomModel {
         postedAt: DateTime.parse(json['posted_at'] as String),
         landlordName: json['landlord_name'] as String,
         amenities: List<String>.from(json['amenities'] ?? []),
-        billsIncluded: json['bills_included'] as bool? ?? false, 
+        billsIncluded: json['bills_included'] as bool? ?? false,
         ownerName: json['owner_name'] as String? ?? '',
         ownerPhone: json['owner_phone'] as String? ?? '',
         preferredGender: json['preferred_gender'] as String? ?? '',

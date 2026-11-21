@@ -24,11 +24,11 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
     _setupAnimations();
-    
+
     // 2. DISMISS THE NATIVE SPLASH
     // This tells the native layer to disappear because our animated Flutter widget is ready!
     FlutterNativeSplash.remove();
-    
+
     _scheduleNavigation();
   }
 
@@ -149,7 +149,13 @@ class _DotLoader extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: List.generate(3, (i) {
             final t = ((controller.value + i * 0.22) % 1.0) * 2 * 3.14159;
-            final yOffset = -6.0 * ((1 + -1 * (t < 3.14159 ? 1 : -1) * (t % 3.14159 / 3.14159 * 2 - 1)).abs()) + 6.0;
+            final yOffset = -6.0 *
+                    ((1 +
+                            -1 *
+                                (t < 3.14159 ? 1 : -1) *
+                                (t % 3.14159 / 3.14159 * 2 - 1))
+                        .abs()) +
+                6.0;
             final opacity = 0.35 + 0.65 * (yOffset / 6);
             return Transform.translate(
               offset: Offset(0, -yOffset.clamp(0.0, 6.0)),
