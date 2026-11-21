@@ -186,6 +186,19 @@ class _LiveAccountListingsScreenState extends State<LiveAccountListingsScreen> {
                     ..._items.map((listing) => Card(
                             child: Column(children: [
                           ListTile(
+                            leading: SizedBox(
+                                width: 66,
+                                height: 66,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: liveImageUrl(listing) == null
+                                      ? const Icon(Icons.image_outlined)
+                                      : Image.network(liveImageUrl(listing)!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) =>
+                                              const Icon(
+                                                  Icons.broken_image_outlined)),
+                                )),
                             title: Text(listing.title),
                             subtitle: Text(
                                 '${listing.priceLabel} · ${listing.location}\n${listing.status}'),

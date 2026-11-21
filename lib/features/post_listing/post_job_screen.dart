@@ -1,3 +1,7 @@
+import 'live_listing_publisher.dart';
+import '../marketplace/widgets/marketplace_address_field.dart';
+import '../business_location/business_location_service.dart';
+import '../../core/network/backend_config.dart';
 import 'package:flutter/material.dart';
 
 import '../../../models/job_model.dart';
@@ -10,6 +14,10 @@ class PostJobScreen extends StatefulWidget {
 }
 
 class _PostJobScreenState extends State<PostJobScreen> {
+  // SaJHa Phase 4D — selected address (remote jobs may use Remote).
+  BusinessLocation? _confirmedLocation;
+  final _publisher = LiveListingPublisher();
+  bool _posting = false;
   int currentStep = 0;
 
   final _step0FormKey = GlobalKey<FormState>();
@@ -57,6 +65,14 @@ class _PostJobScreenState extends State<PostJobScreen> {
         return 'Per Year';
       default:
         return cycle;
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (LiveListingPublisher.isLive) {
+      _employerPhoneController.text = LiveListingPublisher.verifiedPhone;
     }
   }
 
@@ -135,39 +151,67 @@ class _PostJobScreenState extends State<PostJobScreen> {
 
   // ── Submit ───────────────────────────────────────────────────────────────────
 
-  void _submitListing() {
-    // TODO: wire up to your backend / state management
-    // Example of building the JobModel:
-    //
-    // final job = JobModel(
-    //   id: const Uuid().v4(),
-    //   title: _titleController.text.trim(),
-    //   company: _companyController.text.trim(),
-    //   location: _locationController.text.trim(),
-    //   salaryMin: double.tryParse(_salaryMinController.text.trim()),
-    //   salaryMax: double.tryParse(_salaryMaxController.text.trim()),
-    //   salaryCycle: selectedSalaryCycle!,
-    //   jobType: selectedJobType!,
-    //   description: _descriptionController.text.trim(),
-    //   requirements: _requirementsController.text
-    //       .split('\n')
-    //       .map((e) => e.trim())
-    //       .where((e) => e.isNotEmpty)
-    //       .toList(),
-    //   postedAt: DateTime.now(),
-    //   closingDate: closingDate,
-    //   isRemote: isRemote,
-    //   employerName: _employerNameController.text.trim(),
-    //   employerPhone: _employerPhoneController.text.trim(),
-    // );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Job listing submitted successfully'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-    Navigator.pop(context);
+  // SaJHa Phase 4D live submission (original Job Stepper retained).
+  Future<void> _submitListing() async {
+    if (!LiveListingPublisher.isLive) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Demo job submitted (local preview only)'),
+      ));
+      Navigator.pop(context);
+      return;
+    }
+    if (_posting) return;
+    if (!isRemote && _confirmedLocation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Choose a work location from the suggestions.'),
+      ));
+      return;
+    }
+    setState(() => _posting = true);
+    try {
+      await _publisher.publish(
+        kind: 'job',
+        title: _titleController.text,
+        description: _descriptionController.text,
+        location: _locationController.text.trim().isEmpty && isRemote
+            ? 'Remote'
+            : (_confirmedLocation == null
+                ? 'Remote'
+                : LiveListingPublisher.publicArea(_confirmedLocation!)),
+        contactPhone: _employerPhoneController.text.trim(),
+        details: {
+          'company': _companyController.text.trim(),
+          'jobType': selectedJobType!.name,
+          if (_salaryMinController.text.trim().isNotEmpty)
+            'salaryMin': double.parse(_salaryMinController.text.trim()),
+          if (_salaryMaxController.text.trim().isNotEmpty)
+            'salaryMax': double.parse(_salaryMaxController.text.trim()),
+          'salaryCycle': selectedSalaryCycle,
+          'requirements': _requirementsController.text
+              .split('\n')
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toList(),
+          if (closingDate != null)
+            'closingDate': closingDate!.toIso8601String().substring(0, 10),
+          'isRemote': isRemote,
+          'employerName': _employerNameController.text.trim(),
+          ...LiveListingPublisher.coords(_confirmedLocation),
+        },
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Job published to SaJHa Marketplace'),
+      ));
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(e.toString()),
+        ));
+    } finally {
+      if (mounted) setState(() => _posting = false);
+    }
   }
 
   // ── Build ────────────────────────────────────────────────────────────────────
@@ -192,8 +236,10 @@ class _PostJobScreenState extends State<PostJobScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: details.onStepContinue,
-                      child: Text(currentStep == 2 ? 'Submit' : 'Next'),
+                      onPressed: _posting ? null : details.onStepContinue,
+                      child: Text(_posting
+                          ? 'Publishing...'
+                          : (currentStep == 2 ? 'Submit' : 'Next')),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -256,17 +302,15 @@ class _PostJobScreenState extends State<PostJobScreen> {
             ),
             const SizedBox(height: 15),
 
-            // Location
-            TextFormField(
+            // Geoapify autocomplete for workplace, city or region.
+            MarketplaceAddressField(
               controller: _locationController,
-              decoration: const InputDecoration(
-                labelText: 'Location *',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.location_on_outlined),
-              ),
-              validator: (v) => (v == null || v.trim().isEmpty)
-                  ? 'Location is required'
-                  : null,
+              label: isRemote
+                  ? 'Work location (optional for remote)'
+                  : 'Work location *',
+              requiredSelection: !isRemote,
+              onSelected: (place) => setState(() => _confirmedLocation = place),
+              onChangedByUser: () => setState(() => _confirmedLocation = null),
             ),
             const SizedBox(height: 15),
 

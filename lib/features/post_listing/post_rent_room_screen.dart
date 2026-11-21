@@ -1,3 +1,7 @@
+import 'live_listing_publisher.dart';
+import '../marketplace/widgets/marketplace_address_field.dart';
+import '../business_location/business_location_service.dart';
+import '../../core/network/backend_config.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -11,6 +15,11 @@ class PostRentRoomScreen extends StatefulWidget {
 }
 
 class _PostRentRoomScreenState extends State<PostRentRoomScreen> {
+  // SaJHa Phase 4D — location selection fills structured suburb/state fields.
+  final _addressController = TextEditingController();
+  BusinessLocation? _confirmedLocation;
+  final _publisher = LiveListingPublisher();
+  bool _posting = false;
   int currentStep = 0;
 
   final _step0FormKey = GlobalKey<FormState>();
@@ -50,10 +59,19 @@ class _PostRentRoomScreenState extends State<PostRentRoomScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    if (LiveListingPublisher.isLive) {
+      _ownerPhoneController.text = LiveListingPublisher.verifiedPhone;
+    }
+  }
+
+  @override
   void dispose() {
     _titleController.dispose();
     _weeklyRentController.dispose();
     _suburbController.dispose();
+    _addressController.dispose();
     _stateController.dispose();
     _postcodeController.dispose();
     _bedroomsController.dispose();
@@ -130,7 +148,8 @@ class _PostRentRoomScreenState extends State<PostRentRoomScreen> {
 
   Future<void> _pickFromGallery() async {
     try {
-      final List<XFile> files = await _picker.pickMultiImage();
+      final List<XFile> files = await _picker.pickMultiImage(
+          imageQuality: 85, maxWidth: 1800, maxHeight: 1800);
       if (files.isNotEmpty) {
         setState(() => _images.addAll(files.map((e) => File(e.path))));
       }
@@ -149,7 +168,11 @@ class _PostRentRoomScreenState extends State<PostRentRoomScreen> {
 
   Future<void> _takePhoto() async {
     try {
-      final XFile? file = await _picker.pickImage(source: ImageSource.camera);
+      final XFile? file = await _picker.pickImage(
+          source: ImageSource.camera,
+          imageQuality: 85,
+          maxWidth: 1800,
+          maxHeight: 1800);
       if (file != null) {
         setState(() => _images.add(File(file.path)));
       }
@@ -168,15 +191,64 @@ class _PostRentRoomScreenState extends State<PostRentRoomScreen> {
 
   // ── Submit ───────────────────────────────────────────────────────────────────
 
-  void _submitListing() {
-    // TODO: wire up to your backend / state management
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Room listing submitted successfully'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-    Navigator.pop(context);
+  // SaJHa Phase 4D live submission (original Room Stepper retained).
+  Future<void> _submitListing() async {
+    if (!LiveListingPublisher.isLive) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Demo room submitted (local preview only)'),
+      ));
+      Navigator.pop(context);
+      return;
+    }
+    if (_posting) return;
+    if (_confirmedLocation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Choose a room address from the suggestions.'),
+      ));
+      return;
+    }
+    setState(() => _posting = true);
+    try {
+      await _publisher.publish(
+        kind: 'room',
+        title: _titleController.text,
+        description: _descriptionController.text,
+        location: LiveListingPublisher.publicArea(_confirmedLocation!),
+        contactPhone: _ownerPhoneController.text.trim(),
+        details: {
+          'weeklyRent': double.parse(_weeklyRentController.text.trim()),
+          'suburb': _suburbController.text.trim(),
+          'state': _stateController.text.trim(),
+          'postcode': _postcodeController.text.trim(),
+          'bedrooms': int.parse(_bedroomsController.text.trim()),
+          'bathrooms': int.parse(_bathroomsController.text.trim()),
+          'furnished': isFurnished,
+          'billsIncluded': billsIncluded,
+          'preferredGender': selectedPreferredGender,
+          if (availableFrom != null)
+            'availableFrom': availableFrom!.toIso8601String().substring(0, 10),
+          'amenities': _amenitiesController.text
+              .split(',')
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toList(),
+          ...LiveListingPublisher.coords(_confirmedLocation),
+        },
+        images: _images,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Room published to SaJHa Marketplace'),
+      ));
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(e.toString()),
+        ));
+    } finally {
+      if (mounted) setState(() => _posting = false);
+    }
   }
 
   // ── Build ────────────────────────────────────────────────────────────────────
@@ -201,8 +273,10 @@ class _PostRentRoomScreenState extends State<PostRentRoomScreen> {
                 children: [
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: details.onStepContinue,
-                      child: Text(currentStep == 2 ? 'Submit' : 'Next'),
+                      onPressed: _posting ? null : details.onStepContinue,
+                      child: Text(_posting
+                          ? 'Publishing...'
+                          : (currentStep == 2 ? 'Submit' : 'Next')),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -268,6 +342,19 @@ class _PostRentRoomScreenState extends State<PostRentRoomScreen> {
             ),
             const SizedBox(height: 15),
 
+            // Shared Geoapify dropdown; room address and pin stay paired.
+            MarketplaceAddressField(
+              controller: _addressController,
+              label: 'Room address / area *',
+              requiredSelection: LiveListingPublisher.isLive,
+              onSelected: (place) => setState(() {
+                _confirmedLocation = place;
+                if (place.city != null) _suburbController.text = place.city!;
+                if (place.state != null) _stateController.text = place.state!;
+              }),
+              onChangedByUser: () => setState(() => _confirmedLocation = null),
+            ),
+            const SizedBox(height: 15),
             // Suburb
             TextFormField(
               controller: _suburbController,

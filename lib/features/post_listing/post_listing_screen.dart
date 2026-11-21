@@ -29,10 +29,7 @@ class PostListingScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        BackendConfig.configuredBase.isNotEmpty
-                            ? const LivePostListingScreen(kind: 'product')
-                            : const PostBuySellScreen(),
+                    builder: (context) => const PostBuySellScreen(),
                   ),
                 );
               },
@@ -46,10 +43,7 @@ class PostListingScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        BackendConfig.configuredBase.isNotEmpty
-                            ? const LivePostListingScreen(kind: 'room')
-                            : const PostRentRoomScreen(),
+                    builder: (context) => const PostRentRoomScreen(),
                   ),
                 );
               },
@@ -63,10 +57,7 @@ class PostListingScreen extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        BackendConfig.configuredBase.isNotEmpty
-                            ? const LivePostListingScreen(kind: 'job')
-                            : const PostJobScreen(),
+                    builder: (context) => const PostJobScreen(),
                   ),
                 );
               },

@@ -1,3 +1,7 @@
+import 'live_listing_publisher.dart';
+import '../marketplace/widgets/marketplace_address_field.dart';
+import '../business_location/business_location_service.dart';
+import '../../core/network/backend_config.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -11,6 +15,10 @@ class PostBuySellScreen extends StatefulWidget {
 }
 
 class _PostBuySellScreenState extends State<PostBuySellScreen> {
+  // SaJHa Phase 4D — selected Geoapify address, not freeform coordinates.
+  BusinessLocation? _confirmedLocation;
+  final _publisher = LiveListingPublisher();
+  bool _posting = false;
   int currentStep = 0;
 
   final _step0FormKey = GlobalKey<FormState>();
@@ -101,7 +109,8 @@ class _PostBuySellScreenState extends State<PostBuySellScreen> {
 
   Future<void> pickFromGallery() async {
     try {
-      final List<XFile> files = await _picker.pickMultiImage();
+      final List<XFile> files = await _picker.pickMultiImage(
+          imageQuality: 85, maxWidth: 1800, maxHeight: 1800);
       if (files.isNotEmpty) {
         setState(() => _images.addAll(files.map((e) => File(e.path))));
       }
@@ -120,7 +129,11 @@ class _PostBuySellScreenState extends State<PostBuySellScreen> {
 
   Future<void> takePhoto() async {
     try {
-      final XFile? file = await _picker.pickImage(source: ImageSource.camera);
+      final XFile? file = await _picker.pickImage(
+          source: ImageSource.camera,
+          imageQuality: 85,
+          maxWidth: 1800,
+          maxHeight: 1800);
       if (file != null) {
         setState(() => _images.add(File(file.path)));
       }
@@ -139,14 +152,58 @@ class _PostBuySellScreenState extends State<PostBuySellScreen> {
 
   // ── Submit ───────────────────────────────────────────────────────────────────
 
-  void _submitListing() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Listing submitted successfully'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-    Navigator.pop(context);
+  // SaJHa Phase 4D live submission (original Stepper layout retained).
+  Future<void> _submitListing() async {
+    if (!LiveListingPublisher.isLive) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Demo listing submitted (local preview only)'),
+      ));
+      Navigator.pop(context);
+      return;
+    }
+    if (_posting) return;
+    if (_confirmedLocation == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Choose a pickup location from the autocomplete list.'),
+      ));
+      return;
+    }
+    const conditionMap = {
+      'New': 'newItem',
+      'Like New': 'likeNew',
+      'Good': 'good',
+      'Fair': 'fair',
+      'Used': 'used',
+    };
+    setState(() => _posting = true);
+    try {
+      await _publisher.publish(
+        kind: 'product',
+        title: _titleController.text,
+        description: _descriptionController.text,
+        location: LiveListingPublisher.publicArea(_confirmedLocation!),
+        details: {
+          'price': double.parse(_priceController.text.trim()),
+          'category': selectedCategory!,
+          'condition': conditionMap[selectedCondition] ?? 'used',
+          'isNegotiable': false,
+          ...LiveListingPublisher.coords(_confirmedLocation),
+        },
+        images: _images,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Listing published to SaJHa Marketplace'),
+      ));
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(e.toString()),
+        ));
+    } finally {
+      if (mounted) setState(() => _posting = false);
+    }
   }
 
   // ── Build ────────────────────────────────────────────────────────────────────
@@ -170,8 +227,10 @@ class _PostBuySellScreenState extends State<PostBuySellScreen> {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: details.onStepContinue,
-                    child: Text(currentStep == 2 ? 'Submit' : 'Next'),
+                    onPressed: _posting ? null : details.onStepContinue,
+                    child: Text(_posting
+                        ? 'Publishing...'
+                        : (currentStep == 2 ? 'Submit' : 'Next')),
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -258,16 +317,11 @@ class _PostBuySellScreenState extends State<PostBuySellScreen> {
               },
             ),
             const SizedBox(height: 15),
-            TextFormField(
+            MarketplaceAddressField(
               controller: _locationController,
-              decoration: const InputDecoration(
-                labelText: 'Location *',
-                border: OutlineInputBorder(),
-                suffixIcon: Icon(Icons.location_on_outlined),
-              ),
-              validator: (v) => (v == null || v.trim().isEmpty)
-                  ? 'Location is required'
-                  : null,
+              label: 'Pickup location *',
+              onSelected: (value) => setState(() => _confirmedLocation = value),
+              onChangedByUser: () => setState(() => _confirmedLocation = null),
             ),
           ],
         ),
@@ -381,6 +435,12 @@ class _PostBuySellScreenState extends State<PostBuySellScreen> {
                   : null,
             ),
             const SizedBox(height: 20),
+            if (LiveListingPublisher.isLive)
+              ListTile(
+                leading: const Icon(Icons.phone_outlined),
+                title: const Text('Public seller contact (verified)'),
+                subtitle: Text(LiveListingPublisher.verifiedPhone),
+              ),
             Card(
               child: ListTile(
                 leading: const Icon(Icons.storefront_outlined),
