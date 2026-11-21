@@ -28,7 +28,8 @@ class RoomCard extends StatelessWidget {
             // ── Details ───────────────────────────────────────
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

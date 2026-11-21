@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,12 +8,10 @@ class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() =>
-      _ForgotPasswordScreenState();
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState
-    extends State<ForgotPasswordScreen> {
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
 
@@ -123,8 +120,7 @@ class _ForgotPasswordScreenState
                 const SizedBox(height: 12),
                 Center(
                   child: TextButton(
-                    onPressed: () =>
-                        context.go(AppConstants.loginRoute),
+                    onPressed: () => context.go(AppConstants.loginRoute),
                     child: const Text('Back to Sign In'),
                   ),
                 ),

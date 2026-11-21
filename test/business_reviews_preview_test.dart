@@ -8,19 +8,19 @@ void main() {
   final reviews = BusinessReviewStore.instance;
 
   BusinessModel business({String? ownerId}) => BusinessModel(
-    id: 'test-cafe',
-    name: 'Demo Cafe',
-    imageUrl: '',
-    description: 'For unit testing',
-    address: 'Example address',
-    phone: '',
-    website: '',
-    category: 'Cafe',
-    rating: 4.2,
-    reviewCount: 15,
-    openingHours: const {},
-    ownerId: ownerId,
-  );
+        id: 'test-cafe',
+        name: 'Demo Cafe',
+        imageUrl: '',
+        description: 'For unit testing',
+        address: 'Example address',
+        phone: '',
+        website: '',
+        category: 'Cafe',
+        rating: 4.2,
+        reviewCount: 15,
+        openingHours: const {},
+        ownerId: ownerId,
+      );
 
   setUp(() {
     profile.disablePreview();
@@ -29,7 +29,9 @@ void main() {
 
   tearDown(() => profile.disablePreview());
 
-  test('sample preview reviews are explicitly local, while old model is preserved', () {
+  test(
+      'sample preview reviews are explicitly local, while old model is preserved',
+      () {
     final b = business();
     final summary = reviews.summaryFor(b);
     expect(summary.count, 2);
@@ -64,21 +66,31 @@ void main() {
 
   test('invalid stars and short comments are rejected', () {
     final b = business();
-    expect(() => reviews.savePreviewReview(
-      business: b, stars: 0, comment: 'Long enough comment',
-    ), throwsArgumentError);
-    expect(() => reviews.savePreviewReview(
-      business: b, stars: 5, comment: 'short',
-    ), throwsArgumentError);
+    expect(
+        () => reviews.savePreviewReview(
+              business: b,
+              stars: 0,
+              comment: 'Long enough comment',
+            ),
+        throwsArgumentError);
+    expect(
+        () => reviews.savePreviewReview(
+              business: b,
+              stars: 5,
+              comment: 'short',
+            ),
+        throwsArgumentError);
   });
 
   test('demo owner cannot review their own business', () {
     final own = business(ownerId: BusinessReviewStore.demoReviewerId);
-    expect(() => reviews.savePreviewReview(
-      business: own,
-      stars: 5,
-      comment: 'A self-review should be rejected.',
-    ), throwsStateError);
+    expect(
+        () => reviews.savePreviewReview(
+              business: own,
+              stars: 5,
+              comment: 'A self-review should be rejected.',
+            ),
+        throwsStateError);
   });
 
   test('reports are single-entry, locally stored and do not erase reviews', () {
@@ -92,11 +104,13 @@ void main() {
     expect(reviews.hasReported(sample.id), isTrue);
     expect(reviews.previewReports.length, 1);
     expect(reviews.summaryFor(b).count, 2);
-    expect(() => reviews.reportPreviewReview(
-      business: b,
-      reviewId: sample.id,
-      reason: 'Spam or advertising',
-    ), throwsStateError);
+    expect(
+        () => reviews.reportPreviewReview(
+              business: b,
+              reviewId: sample.id,
+              reason: 'Spam or advertising',
+            ),
+        throwsStateError);
     profile.disablePreview();
     expect(reviews.previewReports, isEmpty);
   });

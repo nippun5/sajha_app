@@ -3,11 +3,16 @@ enum JobType { fullTime, partTime, casual, contract, internship }
 extension JobTypeLabel on JobType {
   String get label {
     switch (this) {
-      case JobType.fullTime:   return 'Full-time';
-      case JobType.partTime:   return 'Part-time';
-      case JobType.casual:     return 'Casual';
-      case JobType.contract:   return 'Contract';
-      case JobType.internship: return 'Internship';
+      case JobType.fullTime:
+        return 'Full-time';
+      case JobType.partTime:
+        return 'Part-time';
+      case JobType.casual:
+        return 'Casual';
+      case JobType.contract:
+        return 'Contract';
+      case JobType.internship:
+        return 'Internship';
     }
   }
 }

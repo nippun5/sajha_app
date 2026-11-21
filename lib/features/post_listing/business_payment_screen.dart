@@ -60,13 +60,15 @@ class _BusinessPaymentScreenState extends State<BusinessPaymentScreen>
       final methods = List<String>.from(status['methods'] as List? ?? []);
       setState(() {
         _status = status;
-        if (!methods.contains(_method))
+        if (!methods.contains(_method)) {
           _method = methods.isEmpty ? null : methods.first;
+        }
       });
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(
             () => _error = 'Could not check payment status. Please retry.');
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -84,9 +86,10 @@ class _BusinessPaymentScreenState extends State<BusinessPaymentScreen>
         throw StateError('Checkout could not open');
       }
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(() => _error =
             'Could not open checkout. Your listing is saved; try again.');
+      }
     } finally {
       if (mounted) setState(() => _launching = false);
     }
