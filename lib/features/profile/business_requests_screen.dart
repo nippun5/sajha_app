@@ -5,6 +5,8 @@ import '../../core/auth/auth_session.dart';
 import '../../core/theme/app_colors.dart';
 import '../post_listing/post_business_screen.dart';
 import 'data/profile_demo_store.dart';
+import '../business_requests/live/live_business_api.dart';
+import '../business_requests/live/live_business_requests_screen.dart';
 import 'profile_widgets.dart';
 
 /// Owner-facing request history. No admin/payment actions live here.
@@ -168,6 +170,7 @@ class _BusinessRequestsScreenState extends State<BusinessRequestsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (LiveBusinessApi.enabled) return const LiveBusinessRequestsScreen();
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: const Text('My Business Requests')),

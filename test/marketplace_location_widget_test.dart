@@ -5,21 +5,32 @@ import 'package:sajha_app/features/marketplace/widgets/marketplace_address_field
 
 class FakeAddresses implements BusinessLocationService {
   const FakeAddresses();
-  @override bool get isConfigured => true;
-  @override Future<List<BusinessLocation>> autocomplete(String text) async => [
-    const BusinessLocation(formattedAddress: '123 Main Street, Springfield',
-      latitude: 39.8, longitude: -89.6, city: 'Springfield', state: 'Illinois'),
-  ];
-  @override Future<BusinessLocation?> reverse(double lat, double lon) async => null;
+  @override
+  bool get isConfigured => true;
+  @override
+  Future<List<BusinessLocation>> autocomplete(String text) async => [
+        const BusinessLocation(
+            formattedAddress: '123 Main Street, Springfield',
+            latitude: 39.8,
+            longitude: -89.6,
+            city: 'Springfield',
+            state: 'Illinois'),
+      ];
+  @override
+  Future<BusinessLocation?> reverse(double lat, double lon) async => null;
 }
+
 void main() {
   testWidgets('selection passes both address and coordinates', (tester) async {
     final controller = TextEditingController();
     BusinessLocation? selected;
     var cleared = 0;
-    await tester.pumpWidget(MaterialApp(home: Scaffold(body: Material(
+    await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+            body: Material(
       child: MarketplaceAddressField(
-        controller: controller, service: const FakeAddresses(),
+        controller: controller,
+        service: const FakeAddresses(),
         onSelected: (value) => selected = value,
         onChangedByUser: () => cleared++,
       ),

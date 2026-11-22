@@ -6,6 +6,7 @@ import '../business_location/business_location_picker.dart';
 import '../business_location/business_location_service.dart';
 import '../profile/data/profile_demo_store.dart';
 import '../business_requests/data/business_submission.dart';
+import '../business_requests/live/live_business_api.dart';
 import '../../core/theme/app_colors.dart';
 
 const _navy = AppColors.primary;
@@ -246,7 +247,7 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
       return;
     }
     final store = ProfileDemoStore.instance;
-    if (!store.previewEnabled) {
+    if (!LiveBusinessApi.enabled && !store.previewEnabled) {
       await showDialog<void>(
         context: context,
         builder: (dialogContext) => AlertDialog(
@@ -268,7 +269,7 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
     final snapshot = BusinessSubmission(
       name: _name.text.trim(),
       category: _category == 'Other' ? _custom.text.trim() : (_category ?? ''),
-      phone: _phone.text.trim(),
+      phone: _phone.text.trim().replaceAll(RegExp(r'[\s().-]'), ''),
       website: _normalizedWebsite(),
       description: _about.text.trim(),
       onlineOnly: _online,
@@ -312,9 +313,12 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
                 Text('Location: ${snapshot.locationLabel}'),
                 Text('Contact: ${snapshot.phone}'),
                 const SizedBox(height: 12),
-                const Text('Submission will be Pending in your local demo '
-                    'Profile. No admin is notified, no payment is processed '
-                    'and nothing appears in the public directory.'),
+                Text(LiveBusinessApi.enabled
+                    ? 'Submission will be sent to SaJHa administrators as Pending. '
+                        'Payment is arranged privately; nothing appears publicly until an admin approves it.'
+                    : 'Submission will be Pending in your local demo '
+                        'Profile. No admin is notified, no payment is processed '
+                        'and nothing appears in the public directory.'),
               ]),
         ),
         actions: [
@@ -323,7 +327,9 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
               child: const Text('Go back')),
           FilledButton(
               onPressed: () => Navigator.pop(dialogContext, true),
-              child: const Text('Save Pending preview')),
+              child: Text(LiveBusinessApi.enabled
+                  ? 'Submit for review'
+                  : 'Save Pending preview')),
         ],
       ),
     );
@@ -332,20 +338,32 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
     setState(() => _busy = true);
     try {
       final initial = widget.initialRequest;
-      final request = initial == null
-          ? store.submitBusinessRequest(snapshot)
-          : store.resubmitDeclinedBusinessRequest(initial.id, snapshot);
+      final live = LiveBusinessApi.enabled;
+      final String requestId;
+      if (live) {
+        final result =
+            await LiveBusinessApi().submit(snapshot, correctionId: initial?.id);
+        requestId = result.id;
+      } else {
+        final request = initial == null
+            ? store.submitBusinessRequest(snapshot)
+            : store.resubmitDeclinedBusinessRequest(initial.id, snapshot);
+        requestId = request.id;
+      }
       if (!mounted) return;
       await showDialog<void>(
         context: context,
         barrierDismissible: false,
         builder: (dialogContext) => AlertDialog(
           icon: const Icon(Icons.pending_actions, color: AppColors.primary),
-          title: const Text('Saved as Pending (demo)'),
-          content: Text('Request ${request.id} is in Profile → '
-              'My Business Requests. This record exists only on this device '
-              'until the app restarts or demo mode is turned off. '
-              'It has NOT been sent to an admin.'),
+          title: Text(
+              live ? 'Submitted — Pending review' : 'Saved as Pending (demo)'),
+          content: Text(live
+              ? 'Request $requestId is saved in MySQL for admin review. '
+                  'Check Profile → My Business Requests for its status. '
+                  'Payment confirmation and approval are admin-only.'
+              : 'Request $requestId is in Profile → My Business Requests. '
+                  'This record exists only on this device. No admin is notified.'),
           actions: [
             FilledButton(
               onPressed: () => Navigator.pop(dialogContext),
@@ -646,6 +664,10 @@ class _PostBusinessScreenState extends State<PostBusinessScreen> {
                           }
                           final cleaned =
                               value!.replaceAll(RegExp(r'[\s().-]'), '');
+                          if (LiveBusinessApi.enabled &&
+                              !RegExp(r'^\+[1-9][0-9]{6,14}$')
+                                  .hasMatch(cleaned))
+                            return 'Use international format, e.g. +13145550123.';
                           return RegExp(r'^\+?[0-9]{7,15}$').hasMatch(cleaned)
                               ? null
                               : 'Enter 7–15 digits, with an optional country code.';

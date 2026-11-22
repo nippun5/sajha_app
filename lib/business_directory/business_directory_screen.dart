@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../core/theme/app_colors.dart';
 import '../models/business_model.dart';
+import '../features/business_requests/live/live_business_api.dart';
 import '../features/business_reviews/data/business_review_store.dart';
 import '../shared/data/dummy_data.dart';
 import 'business_detail_page.dart';
@@ -21,11 +22,31 @@ class _BusinessDirectoryScreenState extends State<BusinessDirectoryScreen> {
   final TextEditingController _search = TextEditingController();
   String _category = 'All';
   String _sort = 'Name A–Z';
+  List<BusinessModel> _liveBusinesses = [];
+  bool _liveLoading = false;
+  String? _liveError;
+
+  Future<void> _loadLive() async {
+    if (!LiveBusinessApi.enabled) return;
+    setState(() {
+      _liveLoading = true;
+      _liveError = null;
+    });
+    try {
+      final result = await LiveBusinessApi().browse();
+      if (mounted) setState(() => _liveBusinesses = result);
+    } catch (error) {
+      if (mounted) setState(() => _liveError = error.toString());
+    } finally {
+      if (mounted) setState(() => _liveLoading = false);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
     BusinessReviewStore.instance.addListener(_onReviewsChanged);
+    if (LiveBusinessApi.enabled) _loadLive();
   }
 
   void _onReviewsChanged() {
@@ -68,7 +89,9 @@ class _BusinessDirectoryScreenState extends State<BusinessDirectoryScreen> {
   @override
   Widget build(BuildContext context) {
     // Never present seed data as real paid/approved businesses in release mode.
-    final businesses = kDebugMode ? DummyData.businesses : <BusinessModel>[];
+    final businesses = LiveBusinessApi.enabled
+        ? _liveBusinesses
+        : (kDebugMode ? DummyData.businesses : <BusinessModel>[]);
     final categories = [
       'All',
       ...{for (final b in businesses) b.category}
@@ -76,8 +99,21 @@ class _BusinessDirectoryScreenState extends State<BusinessDirectoryScreen> {
     final filtered = _filtered(businesses);
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('Discover Businesses')),
+      appBar: AppBar(title: const Text('Discover Businesses'), actions: [
+        if (LiveBusinessApi.enabled)
+          IconButton(
+              onPressed: _loadLive,
+              icon: const Icon(Icons.refresh),
+              tooltip: 'Refresh businesses')
+      ]),
       body: Column(children: [
+        if (LiveBusinessApi.enabled && _liveLoading)
+          const LinearProgressIndicator(),
+        if (LiveBusinessApi.enabled && _liveError != null)
+          Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(_liveError!,
+                  style: const TextStyle(color: AppColors.error))),
         Container(
             width: double.infinity,
             margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -98,7 +134,7 @@ class _BusinessDirectoryScreenState extends State<BusinessDirectoryScreen> {
                       'Discover restaurants, shops and trusted local services.',
                       style: TextStyle(color: Colors.white70)),
                 ])),
-        if (kDebugMode)
+        if (kDebugMode && !LiveBusinessApi.enabled)
           const Padding(
               padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: Row(children: [
