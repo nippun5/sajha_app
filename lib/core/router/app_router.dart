@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/signup_screen.dart' show SignupScreen;
 
-import '../../features/auth/forgot_password_screen.dart'
-    show ForgotPasswordScreen;
+import '../../features/auth/live_password_recovery_screen.dart'
+    show LivePasswordRecoveryScreen;
 
 import '../../features/auth/phone_verification_screen.dart'
     show PhoneVerificationScreen;
@@ -54,7 +54,7 @@ abstract final class AppRouter {
       // Forgot Password Screen
       GoRoute(
         path: AppConstants.forgotPasswordRoute,
-        builder: (context, state) => const ForgotPasswordScreen(),
+        builder: (context, state) => const LivePasswordRecoveryScreen(),
       ),
 
       GoRoute(
