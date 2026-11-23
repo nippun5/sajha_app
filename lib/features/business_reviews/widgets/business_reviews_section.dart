@@ -5,6 +5,8 @@ import '../../../core/theme/app_colors.dart';
 import '../../../models/business_model.dart';
 import '../data/business_review.dart';
 import '../data/business_review_store.dart';
+import '../../business_requests/live/live_business_api.dart';
+import '../live/live_business_reviews_section.dart';
 
 /// Local preview for Step 6C. Does not use authenticated accounts, send data,
 /// or make a report visible to an administrator. Replace store with API later.
@@ -84,6 +86,9 @@ class BusinessReviewsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (LiveBusinessApi.enabled) {
+      return LiveBusinessReviewsSection(business: business);
+    }
     final store = BusinessReviewStore.instance;
     return AnimatedBuilder(
       animation: store,
