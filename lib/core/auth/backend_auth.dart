@@ -370,4 +370,96 @@ class BackendAuth {
       await _clearLocal();
     }
   }
+
+  /// Only the backend can assert verified phone and trusted social identity.
+  Future<String> issueAppleNonce() async {
+    final response = await _request('POST', '/auth/social/apple/challenge');
+    _requireSuccess(response);
+    final nonce = _body(response)['nonce'];
+    if (nonce is! String || nonce.isEmpty) {
+      throw const BackendAuthException('Apple sign-in challenge was invalid.');
+    }
+    return nonce;
+  }
+
+  Future<SocialSignInOutcome> socialSignIn({
+    required String provider,
+    required String credential,
+    String? nonce,
+  }) async {
+    final response =
+        await _request('POST', '/auth/social/$provider', jsonBody: {
+      'credential': credential,
+      if (nonce != null) 'nonce': nonce,
+    });
+    _requireSuccess(response);
+    final data = _body(response);
+    if (response.statusCode == 202) {
+      final pending = data['completionToken'];
+      if (pending is! String || pending.isEmpty) {
+        throw const BackendAuthException(
+            'Social registration response was invalid.');
+      }
+      return SocialSignInOutcome(pending, data['suggestedName']?.toString());
+    }
+    if (response.statusCode != 200) {
+      throw const BackendAuthException('Unexpected social login response.');
+    }
+    AuthSession.instance.clearLocalSession();
+    await _acceptTokens(data);
+    _setSession(await _currentAccount());
+    return const SocialSignInOutcome(null, null);
+  }
+
+  Future<void> completeSocialSignUp({
+    required String completionToken,
+    required String name,
+    required String phone,
+  }) async {
+    final normalized = phone.replaceAll(RegExp(r'[\s().-]'), '');
+    if (!RegExp(r'^\+[1-9][0-9]{6,14}$').hasMatch(normalized)) {
+      throw const BackendAuthException(
+          'Use an international phone number (e.g. +1...).');
+    }
+    final response = await _request('POST', '/auth/social/complete', jsonBody: {
+      'completionToken': completionToken,
+      'name': name.trim(),
+      'phone': normalized,
+    });
+    _requireSuccess(response, exactStatus: 201);
+    AuthSession.instance.clearLocalSession();
+    await _acceptTokens(_body(response));
+    _setSession(await _currentAccount());
+  }
+
+  Future<void> linkSocialAccount({
+    required String provider,
+    required String credential,
+    String? nonce,
+  }) async {
+    await _ensureAccess();
+    final response = await _request(
+      'POST',
+      '/me/social/$provider/link',
+      bearer: _accessToken,
+      jsonBody: {'credential': credential, if (nonce != null) 'nonce': nonce},
+    );
+    _requireSuccess(response, exactStatus: 204);
+  }
+
+  /// Invalidate every refresh session and access token for this account.
+  Future<void> signOutEverywhere() async {
+    await _ensureAccess();
+    final response =
+        await _request('POST', '/me/sessions/revoke-all', bearer: _accessToken);
+    _requireSuccess(response, exactStatus: 204);
+    await _clearLocal();
+  }
+}
+
+class SocialSignInOutcome {
+  const SocialSignInOutcome(this.completionToken, this.suggestedName);
+  final String? completionToken;
+  final String? suggestedName;
+  bool get requiresPhone => completionToken != null;
 }

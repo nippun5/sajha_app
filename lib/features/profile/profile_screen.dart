@@ -1,3 +1,4 @@
+import 'linked_accounts_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -202,6 +203,13 @@ class ProfileScreen extends StatelessWidget {
               subtitle: 'Contact choices, profile and security',
               onTap: () => _open(context, const AccountSettingsScreen()),
             ),
+            if (signedIn)
+              _ProfileLink(
+                icon: Icons.verified_user_outlined,
+                title: 'Connected accounts & security',
+                subtitle: 'Google, Apple, Facebook, and sign out everywhere',
+                onTap: () => _open(context, const LinkedAccountsScreen()),
+              ),
             const SizedBox(height: 12),
             if (signedIn)
               OutlinedButton.icon(

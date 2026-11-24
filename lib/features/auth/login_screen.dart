@@ -6,6 +6,8 @@ import '../../core/theme/app_colors.dart';
 import '../../core/auth/auth_session.dart';
 import '../../core/auth/backend_auth.dart';
 
+import '../../core/auth/social_provider_login.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -65,49 +67,95 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _socialLogin(String provider) {
-    void socialLogin(String provider) {
-      final providerName = switch (provider) {
-        'google' => 'Google',
-        'facebook' => 'Facebook',
-        'apple' => 'Apple',
-        _ => 'Social',
-      };
-
-      showDialog<void>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: Text('Continue with $providerName'),
-          content: Text(
-            '$providerName authentication is not connected yet. '
-            'Once integrated, SaJHa will verify your identity '
-            'with $providerName and the backend.\n\n'
-            'You can preview the profile-completion screen '
-            'without creating or signing into an account.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-
-                // UI preview, NOT successful social authentication.
-                context.push(
-                  AppConstants.completeProfileRoute,
-                  extra: {
-                    'provider': provider,
-                    'preview': true,
-                  },
-                );
-              },
-              child: const Text('Preview Setup'),
-            ),
-          ],
-        ),
+  Future<void> _socialLogin(String provider) async {
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
+    try {
+      final proof = await SocialProviderLogin.obtain(provider);
+      final outcome = await BackendAuth.instance.socialSignIn(
+        provider: proof.provider,
+        credential: proof.credential,
+        nonce: proof.nonce,
       );
+      if (!mounted) return;
+      if (outcome.requiresPhone) {
+        final nameController =
+            TextEditingController(text: outcome.suggestedName ?? '');
+        final phoneController = TextEditingController();
+        final key = GlobalKey<FormState>();
+        try {
+          final contact = await showDialog<Map<String, String>>(
+            context: context,
+            builder: (dialogContext) => AlertDialog(
+              title: const Text('Complete SaJHa signup'),
+              content: Form(
+                key: key,
+                child: Column(mainAxisSize: MainAxisSize.min, children: [
+                  const Text(
+                      'A contact number is required. Posting remains blocked until it is verified.'),
+                  TextFormField(
+                      controller: nameController,
+                      decoration: const InputDecoration(labelText: 'Full name'),
+                      validator: (v) => (v ?? '').trim().length < 2
+                          ? 'Enter your name'
+                          : null),
+                  TextFormField(
+                      controller: phoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: const InputDecoration(
+                          labelText: 'Phone (+country code)'),
+                      validator: (v) => RegExp(r'^\+[1-9][0-9]{6,14}$')
+                              .hasMatch(
+                                  (v ?? '').replaceAll(RegExp(r'[\s().-]'), ''))
+                          ? null
+                          : 'Enter an international phone number'),
+                ]),
+              ),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('Cancel')),
+                FilledButton(
+                    onPressed: () {
+                      if (key.currentState?.validate() ?? false) {
+                        Navigator.pop(dialogContext, {
+                          'name': nameController.text.trim(),
+                          'phone': phoneController.text.trim(),
+                        });
+                      }
+                    },
+                    child: const Text('Continue')),
+              ],
+            ),
+          );
+          if (contact == null) return;
+          await BackendAuth.instance.completeSocialSignUp(
+            completionToken: outcome.completionToken!,
+            name: contact['name']!,
+            phone: contact['phone']!,
+          );
+        } finally {
+          nameController.dispose();
+          phoneController.dispose();
+        }
+      }
+      if (!mounted) return;
+      context.go(AuthSession.instance.isPhoneVerified
+          ? AppConstants.shellRoute
+          : AppConstants.phoneVerificationRoute);
+    } on BackendAuthException catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error.message)));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Social login could not be completed. Check provider setup.')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
